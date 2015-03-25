@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>eu.riscoss.rdc</groupId>
+	<artifactId>riscoss-rdc-bundle</artifactId>
+	<version>0.24-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>RISCOSS RDC - Parent POM</name>
+
+	<modules>
+		<module>riscoss-rdr</module>
+		<module>riscoss-rdc-api</module>
+		<module>riscoss-rdc-fossology</module>
+		<module>riscoss-rdc-github</module>
+		<module>riscoss-rdc-jira</module>
+		<module>riscoss-rdc-markmail</module>
+		<module>riscoss-rdc-maven</module>
+		<module>riscoss-rdc-sonar</module>
+		<module>riscoss-rdc-travis_ci</module>
+	</modules>
+
+</project>
