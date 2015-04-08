@@ -1,5 +1,6 @@
 package eu.riscoss.rdc;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,6 +8,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -19,6 +26,8 @@ public class RDCGithub implements RDC {
 	
 	static Set<String>				names = new HashSet<>();
 	static Map<String,RDCParameter>	parameters = new HashMap<>();
+	
+	private HttpClient client = HttpClientBuilder.create().build();
 	
 	Map<String,String> values = new HashMap<>();
 	
@@ -58,10 +67,18 @@ public class RDCGithub implements RDC {
 		
 		String repository = values.get( "repository" );
 		
-		String cmdline = "curl -H \"Accept: application/vnd.github.drax-preview+json\" -i https://api.github.com/repos/" + repository;
-		String json = new Executable( cmdline ).exec().getOutput();
+		String json;
+		try {
+			json = getData();
+			return parseJson( json.substring( json.indexOf( "{" ) ), repository );
+		} catch (org.apache.http.ParseException | IOException e) {
+			e.printStackTrace();
+		}
 		
-		return parseJson( json.substring( json.indexOf( "{" ) ), repository );
+//		String cmdline = "curl -H \"Accept: application/vnd.github.drax-preview+json\" -i https://api.github.com/repos/" + repository;
+//		String json = new Executable( cmdline ).exec().getOutput();
+		
+		return new HashMap<String,RiskData>();
 	}
 	
 	Map<String,RiskData> parseJson( String json, String repository ) {
@@ -96,5 +113,21 @@ public class RDCGithub implements RDC {
 	@Override
 	public Collection<String> getIndicatorNames() {
 		return names;
+	}
+	
+	String getData() throws org.apache.http.ParseException, IOException {
+		String repository = values.get( "repository" );
+		HttpGet get = new HttpGet( "https://api.github.com/repos/" + repository );
+		get.setHeader("Accept", "application/vnd.github.drax-preview+json");
+		
+		HttpResponse response = client.execute(get);
+		if (response.getStatusLine().getStatusCode() == 200) {
+			HttpEntity entity = response.getEntity();
+			String ret = EntityUtils.toString(entity);
+			return ret;
+		} else {
+			// something has gone wrong...
+			return response.getStatusLine().toString();
+		}
 	}
 }

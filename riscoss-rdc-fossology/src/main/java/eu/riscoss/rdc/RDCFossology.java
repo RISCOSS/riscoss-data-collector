@@ -1,5 +1,6 @@
 package eu.riscoss.rdc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -134,7 +135,6 @@ public class RDCFossology implements RDC {
 
 	@Override
 	public Collection<String> getIndicatorNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ArrayList<String>();
 	}
 }

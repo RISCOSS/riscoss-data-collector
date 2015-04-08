@@ -20,6 +20,21 @@
 	
 	<dependencies>
 		<dependency>
+    	  	<groupId>com.google.code.gson</groupId>
+      		<artifactId>gson</artifactId>
+      		<version>2.2.4</version>
+      	</dependency>
+      	<dependency>
+	    <groupId>org.apache.httpcomponents</groupId>
+  			<artifactId>httpclient</artifactId>
+  			<version>4.3.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+		</dependency>
+		<dependency>
 			<groupId>eu.riscoss.rdr</groupId>
 			<artifactId>riscoss-rdr</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
