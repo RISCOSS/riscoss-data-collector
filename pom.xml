@@ -19,6 +19,7 @@
 		<module>riscoss-rdc-maven</module>
 		<module>riscoss-rdc-sonar</module>
 		<module>riscoss-rdc-travis_ci</module>
+		<module>riscoss-rdc-limesurvey</module>
 	</modules>
 
 </project>
