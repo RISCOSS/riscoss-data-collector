@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -15,13 +16,7 @@ import eu.riscoss.dataproviders.RDR;
 import eu.riscoss.dataproviders.RiskData;
 
 public class RDCApp {
-	public static void main( String[] args ) {
-		new RDCApp().run( args );
-	}
-	
-	public void run(String[] args) {
-		
-		Map<String,String> m = parseCmdLine( args );
+	public static void main( String[] args ) throws Exception {
 		
 		RDCFactory.get().registerRDC( new RDCFossology() );
 		RDCFactory.get().registerRDC( new RDCGithub() );
@@ -29,6 +24,13 @@ public class RDCApp {
 //		RDCFactory.get().registerRDC( new RDCMarkmail( "Markmail" ) );
 //		RDCFactory.get().registerRDC( new RDCJira( "Jira" ) );
 //		RDCFactory.get().registerRDC( new RDCSonar( "Sonar" ) );
+		
+		new RDCApp().run( args );
+	}
+	
+	public void run(String[] args) throws Exception {
+		
+		Map<String,String> m = parseCmdLine( args );
 		
 		if( m.get( "-info" ) != null ) {
 			JSONArray outArray = new JSONArray();
@@ -82,6 +84,15 @@ public class RDCApp {
 			return;
 		}
 		
+		JSONObject input = null;;
+		if( args.length > 0 && "--stdin-conf".equals(args[ args.length - 1] ) ) {
+			String stdin = IOUtils.toString(System.in, "UTF-8");
+			input = new JSONObject(stdin);
+		} else {
+			printUsage();
+			return;
+		}
+		
 		RDC rdc = null;
 		if( m.get( "-rdc" ) == null ) {
 			if( m.get( "-i" ) == null ) {
@@ -103,7 +114,7 @@ public class RDCApp {
 		
 		Collection<RDCParameter> pars = rdc.getParameterList();
 		for( RDCParameter p : pars ) {
-			String val = m.get( "-" + p.getName() );
+			String val = input.getString( p.getName() );
 			if( val == null ) {
 				val = p.getDefaultValue();
 			}
@@ -186,7 +197,8 @@ public class RDCApp {
 		System.out.println( "-entity Entity id" );
 		System.out.println( "-print Print on stdout" );
 		System.out.println( "-rdr Url of RDR repository" );
-		System.out.println( "-i interactive mode (asks for missing values - still work in progress)" );
+//		System.out.println( "-i interactive mode (asks for missing values - still work in progress)" );
+		System.out.println( "--stdin-conf Read parameters from stdin" );
 	}
 	
 	protected static String formatType(String value) {
