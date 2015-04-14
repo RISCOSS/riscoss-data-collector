@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.riscoss.datacollector.RiskDataCollector;
 import eu.riscoss.datacollector.common.IndicatorsMap;
-import eu.riscoss.datacollector.restapi.RDR;
-import eu.riscoss.rdc.model.RiskData;
+import eu.riscoss.dataproviders.RDR;
+import eu.riscoss.dataproviders.RiskData;
 
 public class RDCRunner
 {

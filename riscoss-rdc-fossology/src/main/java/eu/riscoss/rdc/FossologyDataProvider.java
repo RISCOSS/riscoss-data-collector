@@ -32,12 +32,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import eu.riscoss.dataproviders.IndicatorsMap;
+import eu.riscoss.datacollector.common.IndicatorsMap;
 import eu.riscoss.dataproviders.RdpConfig;
+import eu.riscoss.datacollector.DataProvider;
 
-public class FossologyDataProvider {
+public class FossologyDataProvider extends DataProvider {
 
-	private static final boolean VERBOSE = true;  //output of all licenses and filterings
+//	public static void main(String[] args) {
+//		run(new FossologyDataProvider(), args);
+//	}
+
+	private static final boolean VERBOSE = false;  //output of all licenses and filterings
 	
     /* Properties needed by the data collector */
     private static final String TARGET_FOSSOLOGY_PROPERTY = "targetFossology";
@@ -64,8 +69,7 @@ public class FossologyDataProvider {
 	 * @param targetFosslolgy
 	 * @param licenseFile
 	 * @throws Exception 
-	 */
-	
+	 */	
 	public void createIndicators(IndicatorsMap im, Properties properties) throws Exception {
 		//private static void createIndicatorsFromFossologyMeasures(String targetFosslolgy, String licenseFile) throws IOException {
 		
@@ -130,10 +134,10 @@ public class FossologyDataProvider {
 		im.add("copyleft-licenses-with-linking", numLinkingPermitted/total); //% of licenses: library viral (Fossology)
 		im.add("percentage-of-files-with-permissive-license", numPermissive/total); //% of licenses: without constraints (Fossology)
 		im.add("files-with-commercial-license",numCommercial/total); //% of licenses: commercial (Fossology)
-//		im.add("percentage-of-files-with-public-domain-license",numPublicDomain/total);
-//		im.add("percentage-of-files-with-multiple-license", numMultiplyLicensed/total);
+		im.add("percentage-of-files-with-public-domain-license",numPublicDomain/total);
+		im.add("percentage-of-files-with-multiple-license", numMultiplyLicensed/total);
 		//TODO
-		im.add("files-with-ads-required-liceses",0);
+//		im.add("files-with-ads-required-liceses",0);
 		
 		//    	i93b" label="Amount of OSS code integrated"
 		//    	i93c" label="Technique used for integrating code (static/dynamic linking, copy)"
@@ -158,13 +162,10 @@ public class FossologyDataProvider {
 		} else {
 			File file = new File(target);
 			System.out.println("Fossology config file used: "+file.getCanonicalPath());
-			try {
-				file = new File( RdpConfig.class.getResource( file.toString() ).toURI().getPath() );
+			
+//				file = new File( RdpConfig.class.getResource( file.toString() ).toURI().getPath() );
 				document = Jsoup.parse(file, "UTF-8", "http://localhost");
-			} catch (URISyntaxException e) {
-				document = Jsoup.parse(file, "UTF-8", "http://localhost");
-				e.printStackTrace();
-			}
+			
 		}
 
 		//    	 System.out.println(document.outerHtml());
@@ -463,28 +464,8 @@ public class FossologyDataProvider {
 		
 		return false;
 	}
-        
+	
+
 }
-
-// from the legal risk model xml:
-//		<indicator id="i103a" label="Number of component licenses (Fossology)" datatype="integer"/>
-//		<indicator id="i103b" label="Amount of files without license (Fossology)" datatype="real"/>
-//		<indicator id="i103c" label="Amount of files with unclear/unknown license (Fossology)" datatype="real"/>
-//		<indicator id="i91" label="Amount of licenses: viral (Fossology)" datatype="real"/>
-//		<indicator id="i93f" label="Amount of licenses: library viral (Fossology)" datatype="real"/>
-//		<indicator id="i93g" label="Amount of licenses: without constraints (Fossology)" datatype="real"/>
-//		<indicator id="i93b" label="Amount of OSS code integrated" datatype="real"/>
-//		<indicator id="i93c" label="Technique used for integrating code (static/dynamic linking, copy)" datatype="integer"/>
-//		<indicator id="i93d" label="Type of licenses in core components" datatype="String"/>
-//		<indicator id="i93h" label="Amount of component code imported/linked from other OSS projects" datatype="real"/>
-//		<indicator id="i120" label="Percentage of US code" datatype="integer"/>
-
-//<situation id="s1" label="License virality" threshold="0.5"/> <!-- i91, i93f, i93g, i93c-->
-//<situation id="s2" label="License compatibility" threshold="0.5"/> <!-- i93d, i103c -->
-//<situation id="s3" label="License uncertainty" threshold="0.5"/> <!-- i103b, i103c, -i93g, -->
-//<situation id="s4" label="Code problematicity" threshold="0.5"/> <!-- i103a, i93b, i93h -->
-//<situation id="s5" label="Availability and verifiability of information on ownership and quality assurance" threshold="0.5"/> <!-- i93d, i93h -->
-//<situation id="s6" label="Percentage of US code" threshold="10"/> <!-- i120 -->
-
 
 

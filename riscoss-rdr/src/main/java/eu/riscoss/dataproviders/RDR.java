@@ -63,7 +63,7 @@ public class RDR
         return riskDataJson;
     }
 
-    private static JsonElement getRiskDataJson(List<RiskData> riskData)
+    public static JsonElement getRiskDataJson(List<RiskData> riskData)
     {
         JsonArray jsonArray = new JsonArray();
         for (RiskData rd : riskData) {
