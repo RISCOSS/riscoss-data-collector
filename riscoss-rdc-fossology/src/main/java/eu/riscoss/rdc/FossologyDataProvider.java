@@ -134,7 +134,7 @@ public class FossologyDataProvider extends DataProvider {
 		im.add("copyleft-licenses-with-linking", numLinkingPermitted/total); //% of licenses: library viral (Fossology)
 		im.add("percentage-of-files-with-permissive-license", numPermissive/total); //% of licenses: without constraints (Fossology)
 		im.add("files-with-commercial-license",numCommercial/total); //% of licenses: commercial (Fossology)
-		im.add("percentage-of-files-with-public-domain-license",numPublicDomain/total);
+//		im.add("percentage-of-files-with-public-domain-license",numPublicDomain/total);
 		im.add("percentage-of-files-with-multiple-license", numMultiplyLicensed/total);
 		//TODO
 //		im.add("files-with-ads-required-liceses",0);

@@ -1,9 +1,7 @@
 package eu.riscoss.rdc;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,8 +9,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import eu.riscoss.datacollector.common.IndicatorsMap;
-import eu.riscoss.dataproviders.Distribution;
-import eu.riscoss.dataproviders.RdpConfig;
+
 import eu.riscoss.dataproviders.RiskData;
 
 public class RDCFossology implements RDC {
