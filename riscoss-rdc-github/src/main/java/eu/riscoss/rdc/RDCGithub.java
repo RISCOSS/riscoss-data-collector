@@ -1,12 +1,11 @@
 package eu.riscoss.rdc;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -24,7 +23,7 @@ import eu.riscoss.dataproviders.RiskDataType;
 
 public class RDCGithub implements RDC {
 	
-	static Set<String>				names = new HashSet<>();
+	static Map<String,String>		names = new HashMap<>();
 	static Map<String,RDCParameter>	parameters = new HashMap<>();
 	
 	private HttpClient client = HttpClientBuilder.create().build();
@@ -32,17 +31,17 @@ public class RDCGithub implements RDC {
 	Map<String,String> values = new HashMap<>();
 	
 	static {
-		names.add( "forks" );
-		names.add( "open_issues_count" );
-		names.add( "stargazers_count" );
-		names.add( "created_at" );
-		names.add( "subscribers_count" );
-		names.add( "open_issues" );
-		names.add( "watchers_count" );
-		names.add( "forks_count" );
-		names.add( "size" );
-		names.add( "has_wiki" );
-		names.add( "updated_at" );
+		names.put( "forks", "number" );
+		names.put( "open_issues_count", "number" );
+		names.put( "stargazers_count", "number" );
+		names.put( "created_at", "date" );
+		names.put( "subscribers_count", "number" );
+		names.put( "open_issues", "number" );
+//		names.put( "watchers_count", "number" );
+		names.put( "size", "number" );
+		names.put( "has_wiki", "boolean" );
+		names.put( "updated_at", "date" );
+		names.put( "license", "object" );
 		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
 	}
@@ -75,9 +74,6 @@ public class RDCGithub implements RDC {
 			e.printStackTrace();
 		}
 		
-//		String cmdline = "curl -H \"Accept: application/vnd.github.drax-preview+json\" -i https://api.github.com/repos/" + repository;
-//		String json = new Executable( cmdline ).exec().getOutput();
-		
 		return new HashMap<String,RiskData>();
 	}
 	
@@ -89,15 +85,46 @@ public class RDCGithub implements RDC {
 				if( jv instanceof JSONObject ) {
 					JSONObject jo = (JSONObject)jv;
 					for( Object key : jo.keySet() ) {
-						if( RDCGithub.names.contains( key.toString() ) ) {
+						if( RDCGithub.names.keySet().contains( key.toString() ) ) {
 							
+							if( jo.get( key ) == null ) continue;
 							String value = jo.get( key ).toString();
-							try {
-								double d = Double.parseDouble( value );
-								RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, d );
-								values.put( key.toString(), rd );
+							if( "number".equals( names.get( key.toString() ) ) ) {
+								try {
+									double d = Double.parseDouble( value );
+									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, d );
+									values.put( key.toString(), rd );
+								}
+								catch( Exception ex ) {
+								}
 							}
-							catch( Exception ex ) {}
+							else if( "boolean".equals( names.get( key.toString() ) ) ) {
+								try {
+									boolean b = Boolean.parseBoolean( value );
+									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, (b ? 1 : 0) );
+									values.put( key.toString(), rd );
+								}
+								catch( Exception ex ) {}
+							}
+							else if( "date".equals( names.get( key.toString() ) ) ) {
+								try {
+									value = value.replaceAll( "T", " " );
+									SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd H:m:s" );
+									Date date = formatter.parse( value );
+									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, date.getTime() );
+									values.put( key.toString(), rd );
+								}
+								catch( Exception ex ) {
+									ex.printStackTrace();
+								}
+							}
+							else if( "boolean".equals( names.get( key.toString() ) ) ) {
+								try {
+									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, 1 );
+									values.put( key.toString(), rd );
+								}
+								catch( Exception ex ) {}
+							}
 						}
 					}
 				}
@@ -112,7 +139,7 @@ public class RDCGithub implements RDC {
 
 	@Override
 	public Collection<String> getIndicatorNames() {
-		return names;
+		return names.keySet();
 	}
 	
 	String getData() throws org.apache.http.ParseException, IOException {

@@ -6,24 +6,32 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONArray;
+import org.reflections.Reflections;
 
 import eu.riscoss.dataproviders.RDR;
 import eu.riscoss.dataproviders.RiskData;
 
+
 public class RDCApp {
 	public static void main( String[] args ) throws Exception {
 		
-		RDCFactory.get().registerRDC( new RDCFossology() );
-		RDCFactory.get().registerRDC( new RDCGithub() );
-		RDCFactory.get().registerRDC( new RDCMaven() );
-//		RDCFactory.get().registerRDC( new RDCMarkmail( "Markmail" ) );
-//		RDCFactory.get().registerRDC( new RDCJira( "Jira" ) );
-//		RDCFactory.get().registerRDC( new RDCSonar( "Sonar" ) );
+		Reflections reflections = new Reflections( RDCApp.class.getPackage().getName() );
+		
+		Set<Class<? extends RDC>> subTypes = reflections.getSubTypesOf(RDC.class);
+		
+		for( Class<? extends RDC> cls : subTypes ) {
+			try {
+				RDC rdc = (RDC)cls.newInstance();
+				RDCFactory.get().registerRDC( rdc );
+			}
+			catch( Exception ex ) {}
+		}
 		
 		new RDCApp().run( args );
 	}

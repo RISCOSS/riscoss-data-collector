@@ -2,6 +2,7 @@ package eu.riscoss.rdc;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import eu.riscoss.dataproviders.RiskData;
@@ -16,8 +17,7 @@ public class RDCJira implements RDC {
 
 	@Override
 	public Map<String, RiskData> getIndicators() {
-		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<String, RiskData>();
 	}
 
 	@Override
@@ -27,8 +27,7 @@ public class RDCJira implements RDC {
 
 	@Override
 	public Collection<RDCParameter> getParameterList() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ArrayList<RDCParameter>();
 	}
 
 	@Override
