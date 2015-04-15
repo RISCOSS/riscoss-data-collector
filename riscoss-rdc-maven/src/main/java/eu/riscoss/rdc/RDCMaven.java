@@ -1,11 +1,19 @@
 package eu.riscoss.rdc;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import eu.riscoss.dataproviders.RiskData;
 import eu.riscoss.dataproviders.RiskDataType;
@@ -15,6 +23,10 @@ public class RDCMaven implements RDC {
 	static Set<String>				names = new HashSet<>();
 	static Map<String,RDCParameter>	parameters = new HashMap<>();
 	static Map<String,String>		values = new HashMap<>();
+	
+	static Map<String,String>		license_mapping = new HashMap<>();
+	
+	private HttpClient client = HttpClientBuilder.create().build();
 	
 	static {
 		names.add( "#mit" );
@@ -39,6 +51,9 @@ public class RDCMaven implements RDC {
 		parameters.put( "groupId", new RDCParameter( "groupId", "groupId", "jsoup", "" ) );
 		parameters.put( "artifactId", new RDCParameter( "artifactId", "artifactId", "jsoup", "" ) );
 		parameters.put( "version", new RDCParameter( "version", "version", "1.8.1", "" ) );
+		
+		license_mapping.put( "The MIT License", "#mit" );
+		
 //		parameters.put( "type", new RDCParameter( "type", "type", "", "" ) );
 	}
 	
@@ -73,26 +88,39 @@ public class RDCMaven implements RDC {
 	@Override
 	public Map<String, RiskData> getIndicators() {
 		
-		String cmdline = "curl " + createUrl();
-		Executable e = new Executable( cmdline ).exec();
+		String json;
 		try {
-			// to avoid a bug in StreamGobbler
-			Thread.sleep( 100 );
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+			json = getData();
+			return parsePom( json, values.get( "artifactId" ) );
+		} catch (org.apache.http.ParseException | IOException e) {
+			e.printStackTrace();
 		}
-		String result = e.getOutput();
-//		String result = new Executable( cmdline ).exec().getOutput();
-		return parsePom( result, values.get( "artifactId" ) );
+		
+		return new HashMap<String,RiskData>();
 	}
 	
 	Map<String,RiskData> parsePom( String string, String repository ) {
 		Map<String,RiskData> values = new HashMap<>();
 		
 		XmlNode xml = XmlNode.loadString( string );
-		XmlNode x = xml.item( "licenses" ).item( "license" ).item( "name" );
-		if( x.exists() ) {
-			values.put( "license", new RiskData( "license", repository, new Date(), RiskDataType.NUMBER, x.getValue() ) );
+		XmlNode xlicenses = xml.item( "licenses" );
+		for( XmlNode xlicense : xlicenses.getChildren( "license" ) ) {
+			XmlNode x = xlicense.item( "name" );
+			if( !x.exists() ) continue;
+			String license = license_mapping.get( x.getValue() );
+			if( license == null ) continue;
+			RiskData rd = values.get( license );
+			if( rd == null ) {
+				rd = new RiskData( license, repository, new Date(), RiskDataType.NUMBER, "1" );
+			}
+			else try {
+				String oldval = rd.getValue().toString();
+				int n = Integer.parseInt( oldval );
+				n++;
+				rd.setValue( "" + n );
+			}
+			catch( Exception ex ) { ex.printStackTrace(); }
+			values.put( license, rd );
 		}
 		
 		return values;
@@ -101,5 +129,26 @@ public class RDCMaven implements RDC {
 	@Override
 	public Collection<String> getIndicatorNames() {
 		return names;
+	}
+	
+	String getData() throws org.apache.http.ParseException, IOException {
+		String url = "";
+		url += "http://central.maven.org/maven2/org";
+		url += "/" + values.get( "groupId" );
+		url += "/" + values.get( "artifactId" );
+		url += "/" + values.get( "version" );
+		url += "/" + values.get( "artifactId" ) + "-" + values.get( "version" );
+		url += ".pom";
+		HttpGet get = new HttpGet( url );
+		
+		HttpResponse response = client.execute(get);
+		if (response.getStatusLine().getStatusCode() == 200) {
+			HttpEntity entity = response.getEntity();
+			String ret = EntityUtils.toString(entity);
+			return ret;
+		} else {
+			// something has gone wrong...
+			return response.getStatusLine().toString();
+		}
 	}
 }
