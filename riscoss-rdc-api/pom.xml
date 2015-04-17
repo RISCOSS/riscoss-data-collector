@@ -4,7 +4,7 @@
   <artifactId>riscoss-rdc-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>RISCOSS-RDC-API</name>
-  <build>
+  <!-- build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -16,7 +16,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</build-->
 
 	<dependencies>
 		<dependency>

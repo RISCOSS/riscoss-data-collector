@@ -8,7 +8,7 @@ public class RDCFactory {
 	
 	private static RDCFactory instance = new RDCFactory();
 	
-	Map<String,RDC> rdcs = new HashMap<>();
+	Map<String,RDC> rdcs = new HashMap<String,RDC>();
 	
 	public static RDCFactory get() {
 		return instance;

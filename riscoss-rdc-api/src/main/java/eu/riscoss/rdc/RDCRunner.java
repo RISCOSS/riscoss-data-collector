@@ -156,7 +156,7 @@ public class RDCRunner {
 	}
 	
 	Map<String,String> parseCmdLine( String[] args ) {
-		Map<String,String> map = new HashMap<>();
+		Map<String,String> map = new HashMap<String,String>();
 		for( String arg : args ) {
 			if( arg.startsWith( "-" ) ) {
 				int n = arg.indexOf( "=" );

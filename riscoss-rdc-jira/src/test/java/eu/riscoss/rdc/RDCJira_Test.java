@@ -10,8 +10,7 @@ public class RDCJira_Test {
 		RDCFactory.get().registerRDC( new RDCJira() );
 		
 		new RDCRunner().run( new String[] {
-				"-info",
-				"-rdc=Jira",
+				"-info"
 		} );
 		
 		new RDCRunner().run( new String[] {
