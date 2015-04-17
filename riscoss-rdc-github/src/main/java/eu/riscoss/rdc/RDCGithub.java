@@ -62,14 +62,10 @@ public class RDCGithub implements RDC {
 	}
 	
 	@Override
-	public Map<String, RiskData> getIndicators() {
-		
-		String repository = values.get( "repository" );
-		
-		String json;
+	public Map<String, RiskData> getIndicators( String entity ) {
 		try {
-			json = getData();
-			return parseJson( json.substring( json.indexOf( "{" ) ), repository );
+			String json = getData();
+			return parseJson( json.substring( json.indexOf( "{" ) ), entity );
 		} catch (org.apache.http.ParseException | IOException e) {
 			e.printStackTrace();
 		}
@@ -77,7 +73,7 @@ public class RDCGithub implements RDC {
 		return new HashMap<String,RiskData>();
 	}
 	
-	Map<String,RiskData> parseJson( String json, String repository ) {
+	Map<String,RiskData> parseJson( String json, String entity ) {
 		Map<String,RiskData> values = new HashMap<>();
 		try {
 			try {
@@ -92,7 +88,7 @@ public class RDCGithub implements RDC {
 							if( "number".equals( names.get( key.toString() ) ) ) {
 								try {
 									double d = Double.parseDouble( value );
-									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, d );
+									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, d );
 									values.put( key.toString(), rd );
 								}
 								catch( Exception ex ) {
@@ -101,7 +97,7 @@ public class RDCGithub implements RDC {
 							else if( "boolean".equals( names.get( key.toString() ) ) ) {
 								try {
 									boolean b = Boolean.parseBoolean( value );
-									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, (b ? 1 : 0) );
+									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, (b ? 1 : 0) );
 									values.put( key.toString(), rd );
 								}
 								catch( Exception ex ) {}
@@ -111,7 +107,7 @@ public class RDCGithub implements RDC {
 									value = value.replaceAll( "T", " " );
 									SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd H:m:s" );
 									Date date = formatter.parse( value );
-									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, date.getTime() );
+									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, date.getTime() );
 									values.put( key.toString(), rd );
 								}
 								catch( Exception ex ) {
@@ -120,7 +116,7 @@ public class RDCGithub implements RDC {
 							}
 							else if( "boolean".equals( names.get( key.toString() ) ) ) {
 								try {
-									RiskData rd = new RiskData( key.toString(), repository, new Date(), RiskDataType.NUMBER, 1 );
+									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, 1 );
 									values.put( key.toString(), rd );
 								}
 								catch( Exception ex ) {}

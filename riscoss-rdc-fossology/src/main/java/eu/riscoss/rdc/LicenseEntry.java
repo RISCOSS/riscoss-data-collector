@@ -9,7 +9,6 @@ import java.util.Collection;
 public class LicenseEntry {
 	public int count;
 	private final String name;
-//	public boolean matched=false;
 	public String licensetype="unknown";
 
 	public LicenseEntry(int c, String n) {
@@ -27,23 +26,6 @@ public class LicenseEntry {
 			return this;
 		return null;
 	}
-
-//	public LicenseEntry matchOnce(String s){
-//		if (!matched)
-//			if (name.contains(s)){
-//				matched=true;
-//				return this;
-//			}
-//		return null;
-//	}
-//	public LicenseEntry matchesOneOf(Collection<String> si){
-//		for (String string : si) {
-////			if (name.contains(string))
-//			if (matches(string)!=null)
-//				return this;
-//		}
-//		return null;
-//	}
 	
 	/**
 	 * For matching fossology license strings
@@ -53,7 +35,6 @@ public class LicenseEntry {
 	 */
 	public boolean matchesOneOf(Collection<String> si, String licenseType){
 		for (String string : si) {
-//			if (name.contains(string))
 			if (startsWith(string)!=null){
 				this.licensetype=licenseType;
 				return true;
@@ -70,7 +51,6 @@ public class LicenseEntry {
 	 */
 	public boolean matchesOneOf_Maven(Collection<String> si, String licenseType){
 		for (String string : si) {
-//			if (name.contains(string))
 			if (containsWord(string)!=null){
 				this.licensetype=licenseType;
 				return true;

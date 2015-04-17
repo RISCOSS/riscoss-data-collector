@@ -1,118 +1,205 @@
 package eu.riscoss.rdc;
 
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Scanner;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import eu.riscoss.datacollector.RiskDataCollector;
-import eu.riscoss.datacollector.common.IndicatorsMap;
 import eu.riscoss.dataproviders.RDR;
 import eu.riscoss.dataproviders.RiskData;
 
-public class RDCRunner
-{
-    private static Logger LOGGER = LoggerFactory.getLogger(RDCRunner.class);
 
-    private static String TARGET_ENTITY_PROPERTY = "targetEntity";
+public class RDCRunner {
+	
+	public void run(String[] args) throws Exception {
+		
+		Map<String,String> m = parseCmdLine( args );
+		
+		for( String key : m.keySet() ) {
+			System.out.println( key + " = " + m.get( key ) );
+		}
+		
+		if( m.get( "-info" ) != null ) {
+			JSONArray outArray = new JSONArray();
+			for( RDC rdc : RDCFactory.get().listRDCs() ) {
+				JSONObject jrdc = new JSONObject();
+				try {
+					jrdc.put( "name", rdc.getName() );
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				JSONArray jargs = new JSONArray();
+				for( RDCParameter par : rdc.getParameterList() ) {
+					JSONObject jpar = new JSONObject();
+					try {
+						jpar.put( "name",  par.getName() );
+						jpar.put( "description",  par.getDescription() );
+						jpar.put( "defaultValue",  par.getDefaultValue() );
+						jpar.put( "example",  par.getExample() );
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					jargs.put( jpar );
+				}
+				try {
+					jrdc.put( "parameters", jargs );
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				JSONArray jinds = new JSONArray();
+				for( String name : rdc.getIndicatorNames() ) {
+					jinds.put( name );
+				}
+				try {
+					jrdc.put( "indicators", jinds );
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				outArray.put( jrdc );
+			}
+			System.out.println("-----BEGIN CONFIGURATION DATA-----");
+			System.out.println( outArray.toString() );
+			System.out.println("-----END CONFIGURATION DATA-----");
+			return;
+		}
+		
+		String entity = m.get( "-entity" );
+		if( entity == null ) {
+			printUsage();
+			return;
+		}
+		
+		JSONObject input = null;;
+		if( args.length > 0 && "--stdin-conf".equals(args[ args.length - 1] ) ) {
+			String stdin = IOUtils.toString(System.in, "UTF-8");
+			input = new JSONObject(stdin);
+		} else {
+			input = new JSONObject();
+		}
+		
+		RDC rdc = null;
+		if( m.get( "-rdc" ) == null ) {
+			printUsage();
+			System.exit( 0 );
+		}
+		else {
+			rdc = RDCFactory.get().getRDC( m.get( "-rdc" ) );
+			if( rdc == null ) {
+				System.out.println( "Unknown RDC name: " + m.get( "-rdc" ) );
+				System.exit( 0 );
+			}
+		}
+		
+		Collection<RDCParameter> pars = rdc.getParameterList();
+		for( RDCParameter p : pars ) {
+			String val = null;
+			try {
+				val = input.getString( p.getName() );
+			} catch( Exception ex ) {
+				val = m.get( "-" + p.getName() );
+			}
+			if( val == null ) {
+				val = p.getDefaultValue();
+			}
+			if( val == null ) {
+				System.out.println( "Missing parameter: -" + p.getName() );
+				System.exit( 0 );
+			}
+			try {
+				rdc.setParameter( p.getName(), val );
+			}
+			catch( Exception ex ) {
+				ex.printStackTrace();
+			}
+		}
+		
+		Map<String,RiskData> ret = rdc.getIndicators( entity );
+		
+		if( m.get( "-print" ) != null ) {
+			JSONArray outArray = new JSONArray();
+			String value = "";
+			for( String key : ret.keySet() ) try {
+				JSONObject outObj = new JSONObject();
+				RiskData rd = ret.get( key );
+				outObj.put("id", rd.getId() );
+				outObj.put("target", entity );
+				value = rd.getValue().toString();
+				outObj.put( "value", value );
+				outObj.put( "type", rd.getType() );
+				outArray.put(outObj);
+			}
+			catch( Exception ex ) {
+				ex.printStackTrace();
+			}
+			System.out.println("-----BEGIN RISK DATA-----");
+			System.out.println(outArray.toString());
+			System.out.println("-----END RISK DATA-----");
+		}
+		
+		if( m.get( "-rdr" ) != null ) {
+			String url = m.get( "-rdr" );
+			try {
+				RDR.sendRiskData( url, new ArrayList<RiskData>( ret.values() ) );
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	Map<String,String> parseCmdLine( String[] args ) {
+		Map<String,String> map = new HashMap<>();
+		for( String arg : args ) {
+			if( arg.startsWith( "-" ) ) {
+				int n = arg.indexOf( "=" );
+				if( n != -1 ) {
+					String p1 = arg.substring( 0, n );
+					String p2 = arg.substring( n+1 );
+					map.put( p1, p2 );
+				}
+				else {
+					map.put( arg, "true" );
+				}
+			}
+		}
+		return map;
+	}
+	
+	String input( String msg ) {
+		System.out.print( msg );
+		Scanner in = new Scanner(System.in);
+		String str = in.next();
+//		in.close();
+		return str;
+	}
+	
+	void printUsage() {
+		System.out.println( "Usage: java -jar <rdp.jar> [-info | -entity=<entity> [-print] [-rdr=<rdrUrl>] [-i] [-rdc=rdcName] [-<par_namr>=<par_value> [...] ] ]" );
+		System.out.println( "-info Prints the list of availabe RDCs, the indicators they provide and the parameters they require" );
+		System.out.println( "-entity Entity id" );
+		System.out.println( "-print Print on stdout" );
+		System.out.println( "-rdr Url of RDR repository" );
+//		System.out.println( "-i interactive mode (asks for missing values - still work in progress)" );
+		System.out.println( "--stdin-conf Read parameters from stdin" );
+	}
+	
+	protected static String formatType( String value ) {
+		String type = "NUMBER";
+		try {
+			Double.valueOf(value);
 
-    /**
-     * 
-     * @param args The arguments: 
-     * 			-properties <propertiesfile>
-     * 			-property <key=value>
-     * @param riskDataCollector The data collector to execute
-     */
-    public static void exec(String[] args, RiskDataCollector riskDataCollector)
-    {
-        try {
-            Options options = new Options();
-            @SuppressWarnings("static-access")
-			Option propertiesOption = OptionBuilder.hasArgs()
-												   .withArgName("propertiesFile")
-												   .create("properties");
-            
-            @SuppressWarnings("static-access")
-			Option propertyOption = OptionBuilder.withArgName("key=value")
-            									 .hasArgs()
-            									 .withDescription("parameter values, described in the associated XWiki class")
-            									 .create("property");
-            
-            options.addOption(propertiesOption);
-            options.addOption(propertyOption);
+		} catch (NumberFormatException e) {
+			type = "STRING";
+		}
 
-            CommandLineParser parser = new GnuParser();
-            CommandLine commandLine = parser.parse(options, args);
-
-            Properties properties = new Properties();
-
-            /* If there is data on the standard input, then parse properties passed there */
-            if (System.in.available() != 0) {
-                String stdin = IOUtils.toString(System.in, "UTF-8");
-                JSONObject input = new JSONObject(stdin);
-
-                Iterator it = input.keys();
-                while (it.hasNext()) {
-                    String k = (String) it.next();
-                    properties.put(k, String.format("%s", input.get(k)));
-                }
-            }
-
-            if (commandLine.hasOption("properties")) {
-                Properties commandLineSpecifiedProperties = new Properties();
-                for (String arg : commandLine.getOptionValues("properties")) {
-                    commandLineSpecifiedProperties.load(new FileInputStream(arg));
-                    properties.putAll(commandLineSpecifiedProperties);
-                }
-            }
-
-            if (commandLine.hasOption("property")) {
-                for (String arg : commandLine.getOptionValues("property")) {
-                    String parts[] = arg.split("=", 2);
-                    if (parts.length == 2) {
-                        properties.put(parts[0], parts[1]);
-                    }
-                }
-            }
-
-            LOGGER.debug("Defined properties");
-            for (Map.Entry e : properties.entrySet()) {
-                LOGGER.debug(String.format("  %s=%s", e.getKey(), e.getValue()));
-            }
-
-            String targetEntity = properties.getProperty(TARGET_ENTITY_PROPERTY);
-
-            if (targetEntity != null) {
-                IndicatorsMap indicatorsMap = new IndicatorsMap(targetEntity);
-                riskDataCollector.createIndicators(indicatorsMap, properties);
-                System.out.println("\n\n-----BEGIN RISK DATA-----");
-                System.out.format("%s\n",
-                        RDR.getRiskDataJson(new ArrayList<RiskData>(indicatorsMap.values())).toString());
-                System.out.println("-----END RISK DATA-----");
-            } else {
-                LOGGER.error(String.format("No %s specified in properties", TARGET_ENTITY_PROPERTY));
-                System.exit(1);
-            }
-        } catch (Exception e) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.error(e.getMessage(), e);
-            } else {
-                LOGGER.error(e.getMessage());
-            }
-
-            System.exit(1);
-        }
-    }
+		return type;
+	}
 }

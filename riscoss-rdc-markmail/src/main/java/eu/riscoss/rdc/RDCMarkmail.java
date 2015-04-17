@@ -9,20 +9,17 @@ import eu.riscoss.dataproviders.RiskData;
 
 public class RDCMarkmail implements RDC {
 
-	private String name;
-
-	public RDCMarkmail( String name ) {
-		this.name = name;
+	public RDCMarkmail() {
 	}
 
 	@Override
-	public Map<String, RiskData> getIndicators() {
+	public Map<String, RiskData> getIndicators( String entity ) {
 		return new HashMap<String, RiskData>();
 	}
 
 	@Override
 	public String getName() {
-		return this.name;
+		return "Markmail";
 	}
 
 	@Override

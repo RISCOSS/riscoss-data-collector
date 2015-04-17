@@ -15,6 +15,6 @@ public interface RDC {
 	
 	public Collection<String> getIndicatorNames();
 	
-	public Map<String,RiskData> getIndicators();
+	public Map<String,RiskData> getIndicators( String target );
 	
 }

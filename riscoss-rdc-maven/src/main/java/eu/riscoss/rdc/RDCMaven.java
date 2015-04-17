@@ -1,11 +1,13 @@
 package eu.riscoss.rdc;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.http.HttpEntity;
@@ -52,7 +54,22 @@ public class RDCMaven implements RDC {
 		parameters.put( "artifactId", new RDCParameter( "artifactId", "artifactId", "jsoup", "" ) );
 		parameters.put( "version", new RDCParameter( "version", "version", "1.8.1", "" ) );
 		
+		InputStream is = RDCMaven.class.getResourceAsStream( "spdx_license_list.txt" );
+		Scanner scanner = new Scanner( is );
+		while( scanner.hasNext() ) {
+			String line = scanner.next();
+			String[] tok = line.split( "[\t]" );
+			if( tok.length < 3 ) continue;
+			String id = tok[0];
+			for( int i = 2; i < tok.length; i++ ) {
+				license_mapping.put( tok[i], id );
+			}
+		}
+		scanner.close();
+		
 		license_mapping.put( "The MIT License", "#mit" );
+		license_mapping.put( "Mozilla Public License Version 1.0", "#pml" );
+		license_mapping.put( "The Apache Software License, Version 2.0", "#apl2" );
 		
 //		parameters.put( "type", new RDCParameter( "type", "type", "", "" ) );
 	}
@@ -86,12 +103,12 @@ public class RDCMaven implements RDC {
 	}
 	
 	@Override
-	public Map<String, RiskData> getIndicators() {
+	public Map<String, RiskData> getIndicators( String entity ) {
 		
 		String json;
 		try {
 			json = getData();
-			return parsePom( json, values.get( "artifactId" ) );
+			return parsePom( json, entity );
 		} catch (org.apache.http.ParseException | IOException e) {
 			e.printStackTrace();
 		}
@@ -99,7 +116,7 @@ public class RDCMaven implements RDC {
 		return new HashMap<String,RiskData>();
 	}
 	
-	Map<String,RiskData> parsePom( String string, String repository ) {
+	Map<String,RiskData> parsePom( String string, String entity ) {
 		Map<String,RiskData> values = new HashMap<>();
 		
 		XmlNode xml = XmlNode.loadString( string );
@@ -109,9 +126,10 @@ public class RDCMaven implements RDC {
 			if( !x.exists() ) continue;
 			String license = license_mapping.get( x.getValue() );
 			if( license == null ) continue;
+			if( "".equals( license ) ) continue;
 			RiskData rd = values.get( license );
 			if( rd == null ) {
-				rd = new RiskData( license, repository, new Date(), RiskDataType.NUMBER, "1" );
+				rd = new RiskData( license, entity, new Date(), RiskDataType.NUMBER, "1" );
 			}
 			else try {
 				String oldval = rd.getValue().toString();
