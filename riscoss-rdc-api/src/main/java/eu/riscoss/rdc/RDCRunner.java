@@ -72,18 +72,19 @@ public class RDCRunner {
 			return;
 		}
 		
-		String entity = m.get( "-entity" );
-		if( entity == null ) {
-			printUsage();
-			return;
-		}
-		
 		JSONObject input = null;;
 		if( args.length > 0 && "--stdin-conf".equals(args[ args.length - 1] ) ) {
 			String stdin = IOUtils.toString(System.in, "UTF-8");
 			input = new JSONObject(stdin);
 		} else {
 			input = new JSONObject();
+		}
+
+		String entity = m.get( "-entity" );
+		if( entity == null ) { entity = input.optString("targetEntity"); }
+		if( entity == null ) {
+			printUsage();
+			return;
 		}
 		
 		RDC rdc = null;
