@@ -24,9 +24,9 @@ public class RDCMaven implements RDC {
 	
 	static Set<String>				names = new HashSet<>();
 	static Map<String,RDCParameter>	parameters = new HashMap<>();
-	static Map<String,String>		values = new HashMap<>();
-	
 	static Map<String,String>		license_mapping = new HashMap<>();
+	
+	Map<String,String>				values = new HashMap<>();
 	
 	private HttpClient client = HttpClientBuilder.create().build();
 	
