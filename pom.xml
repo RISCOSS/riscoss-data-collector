@@ -8,6 +8,26 @@
 	<packaging>pom</packaging>
 
 	<name>RISCOSS RDC - Parent POM</name>
+	
+	<repositories>
+        <repository>
+           <id>atlassian-public</id>
+           <url>https://maven.atlassian.com/content/groups/public</url>
+           <snapshots>
+             <enabled>true</enabled>
+             <updatePolicy>never</updatePolicy>
+             <checksumPolicy>warn</checksumPolicy>
+           </snapshots>
+           <releases>
+             <enabled>true</enabled>
+             <checksumPolicy>warn</checksumPolicy>
+           </releases>
+         </repository>
+            <repository>
+		      <id>https-atlassian</id>
+      			<url>https://m2proxy.atlassian.com/repository/public/</url>
+			   </repository>
+    </repositories>
 
 	<modules>
 		<module>riscoss-rdr</module>
@@ -21,6 +41,6 @@
 		<module>riscoss-rdc-sonar</module>
 		<module>riscoss-rdc-travis_ci</module>
 		<module>riscoss-rdc-limesurvey</module>
-	</modules>
+  	</modules>
 
 </project>

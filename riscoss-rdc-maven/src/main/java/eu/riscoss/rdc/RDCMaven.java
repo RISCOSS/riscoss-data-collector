@@ -55,17 +55,19 @@ public class RDCMaven implements RDC {
 		parameters.put( "version", new RDCParameter( "version", "version", "1.8.1", "" ) );
 		
 		InputStream is = RDCMaven.class.getResourceAsStream( "spdx_license_list.txt" );
-		Scanner scanner = new Scanner( is );
-		while( scanner.hasNext() ) {
-			String line = scanner.next();
-			String[] tok = line.split( "[\t]" );
-			if( tok.length < 3 ) continue;
-			String id = tok[0];
-			for( int i = 2; i < tok.length; i++ ) {
-				license_mapping.put( tok[i], id );
+		if( is != null ) {
+			Scanner scanner = new Scanner( is );
+			while( scanner.hasNext() ) {
+				String line = scanner.next();
+				String[] tok = line.split( "[\t]" );
+				if( tok.length < 3 ) continue;
+				String id = tok[0];
+				for( int i = 2; i < tok.length; i++ ) {
+					license_mapping.put( tok[i], id );
+				}
 			}
+			scanner.close();
 		}
-		scanner.close();
 		
 		license_mapping.put( "The MIT License", "#mit" );
 		license_mapping.put( "Mozilla Public License Version 1.0", "#pml" );

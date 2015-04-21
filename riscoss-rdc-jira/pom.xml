@@ -4,6 +4,27 @@
   <artifactId>riscoss-rdc-jira</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>RISCOSS-RDC-JIRA</name>
+  
+	<repositories>
+        <repository>
+           <id>atlassian-public</id>
+           <url>https://maven.atlassian.com/content/groups/public</url>
+           <snapshots>
+             <enabled>true</enabled>
+             <updatePolicy>never</updatePolicy>
+             <checksumPolicy>warn</checksumPolicy>
+           </snapshots>
+           <releases>
+             <enabled>true</enabled>
+             <checksumPolicy>warn</checksumPolicy>
+           </releases>
+         </repository>
+            <repository>
+		      <id>https-atlassian</id>
+      			<url>https://m2proxy.atlassian.com/repository/public/</url>
+			   </repository>
+    </repositories>
+    
   <build>
 		<plugins>
 			<plugin>
@@ -16,6 +37,14 @@
 				</configuration>
 			</plugin>
 		</plugins>
+    <resources>
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>eu/riscoss/rdc/spdx_license_list.txt</include>
+        </includes>
+      </resource>
+    </resources>
 	</build>
 	
 	<dependencies>
