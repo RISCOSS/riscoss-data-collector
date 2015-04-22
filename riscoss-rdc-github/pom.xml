@@ -50,10 +50,10 @@
 			<version>1.0</version>
 		</dependency>
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>1.4</version>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 </project>

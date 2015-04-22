@@ -17,11 +17,12 @@ public class RDCJira_Test {
 				"-entity=x",
 				"-print",
 				"-rdc=Jira",
-				"-JIRA_URL=https://jira.ow2.org",
+				"-JIRA_URL=http://jira.xwiki.org",
 				"-JIRA_AnonymousAuthentication=true",
 				"-JIRA_Username=username",
 				"-JIRA_Password=password",
-				"-JIRA_Project=EZB"
+				"-JIRA_InitialDate=2015/03/01"
+				//"-JIRA_Project=EZB"
 		} );
 		
 //		RDC rdc = new RDCJira();

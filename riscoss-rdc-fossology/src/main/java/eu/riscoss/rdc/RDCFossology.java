@@ -37,6 +37,8 @@ public class RDCFossology implements RDC {
 	static {
 		parameterMap = new HashMap<String,RDCParameter>();
 		
+		parameterMap.put( "licenseFile", 
+				new RDCParameter( "licenseFile", "", "LicensesCfg.html", "LicensesCfg.html") );
 		parameterMap.put( "targetFossology",
 				new RDCParameter( "targetFossology", "", "http://fossology.ow2.org/?mod=nomoslicense&upload=38&item=292002", null ) );
 		parameterMap.put( "fossologyScanType",
@@ -116,8 +118,8 @@ public class RDCFossology implements RDC {
 		}
 		
 		String licenseFile = parameters.get( "licenseFile" );
-		if( licenseFile == null ) //licenseFile = "";
-		licenseFile = RDCFossology.class.getResource( "LicensesCfg.html" ).toString();
+//		if (licenseFile == null) // licenseFile = "";
+//			licenseFile = RDCFossology.class.getResource("LicensesCfg.html").toString();
 		HashMap<String, Collection<String>> licensesMap = parseLicensesFile( licenseFile );
 		
 		HashMap<String, Integer> licenseBuckets;
@@ -399,9 +401,12 @@ public class RDCFossology implements RDC {
 			if( target.startsWith( "file:" ) )
 				target = target.substring( 5 );
 			File file = new File(target);
-			System.out.println("Fossology config file used: "+file.getCanonicalPath());
+						
+			InputStream in = new RDCFossology().getClass().getResourceAsStream("LicensesCfg.html");
+			//System.out.println("Fossology config file used: "+file.getPath());
+			//System.out.println("Fossology IS file used: "+in.toString());
 			
-			document = Jsoup.parse(file, "UTF-8", "http://localhost");
+			document = Jsoup.parse(in, "UTF-8", "http://localhost");
 			
 		}
 		
