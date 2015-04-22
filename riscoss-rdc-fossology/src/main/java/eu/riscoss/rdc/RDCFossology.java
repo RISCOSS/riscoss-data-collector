@@ -219,7 +219,7 @@ public class RDCFossology implements RDC {
 			/* Calculate the occurrences for each license type */
 			
 			while ((line = br.readLine()) != null) {
-				System.out.println( line );
+//				System.out.println( line );
 				/* Parse only the lines that contains a ':' */
 				if( line.contains("Warning: Only the last" ) ) {
 //					onlyXLinesDisplayed = true;
@@ -356,7 +356,7 @@ public class RDCFossology implements RDC {
 			total+=le.count;
 			if (matched==false) { //unknown
 				numUnknown+=le.count;
-				System.out.println("Unknown license: " +le.getName());
+				System.err.println("Unknown license: " +le.getName());
 			}
 		}
 		
@@ -400,10 +400,10 @@ public class RDCFossology implements RDC {
 		} else {
 			if( target.startsWith( "file:" ) )
 				target = target.substring( 5 );
+			
 			File file = new File(target);
 			
 			InputStream in = 
-//					Thread.currentThread().getContextClassLoader().getResourceAsStream( "/eu.riscoss.rdc/LicensesCfg.html" );
 					RDCFossology.class.getResourceAsStream( "res/LicensesCfg.html" );
 			//System.out.println("Fossology config file used: "+file.getPath());
 			//System.out.println("Fossology IS file used: "+in.toString());
