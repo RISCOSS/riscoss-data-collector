@@ -42,7 +42,7 @@ public class RDCFossology implements RDC {
 		parameterMap.put( "targetFossology",
 				new RDCParameter( "targetFossology", "", "http://fossology.ow2.org/?mod=nomoslicense&upload=38&item=292002", null ) );
 		parameterMap.put( "fossologyScanType",
-				new RDCParameter( "fossologyScanType", "'overview' or 'filelist'; default: 'filelist'", "filelist", "filelist" ) );
+				new RDCParameter( "fossologyScanType", "'overview' or 'filelist'; default: 'overview'", "overview", "overview" ) );
 		parameterMap.put( "targetFossologyList",
 				new RDCParameter( "targetFossologyList", "", "http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext", null ) );
 		parameterMap.put( "fossologyFilterExtensions",
@@ -401,8 +401,10 @@ public class RDCFossology implements RDC {
 			if( target.startsWith( "file:" ) )
 				target = target.substring( 5 );
 			File file = new File(target);
-						
-			InputStream in = new RDCFossology().getClass().getResourceAsStream("LicensesCfg.html");
+			
+			InputStream in = 
+//					Thread.currentThread().getContextClassLoader().getResourceAsStream( "/eu.riscoss.rdc/LicensesCfg.html" );
+					RDCFossology.class.getResourceAsStream( "res/LicensesCfg.html" );
 			//System.out.println("Fossology config file used: "+file.getPath());
 			//System.out.println("Fossology IS file used: "+in.toString());
 			

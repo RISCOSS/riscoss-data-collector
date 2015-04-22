@@ -15,7 +15,61 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+      
+      <!-- plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <includes>
+            <include>${basedir}/target/*</include>
+          </includes>
+        </configuration>
+      </plugin-->
+      
+      
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/eu/riscoss/rdc/res</outputDirectory>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/java/eu/riscoss/rdc/res</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+      
 		</plugins>
+		
+                            <!-- resources>
+                                <resource>
+    							    <filtering>false</filtering>
+                                    <directory>eu/riscoss/rdc</directory>
+                                    <includes>
+                                    	<include>LicensesCfg.html</include>
+                                    </includes>
+                                </resource>
+    <resource>
+        <filtering>false</filtering>
+        <directory>src</directory>
+        <includes>
+            <include>**/*.htm</include>
+        </includes>
+    </resource>
+                            </resources-->
 	</build>
 	
 	<dependencies>

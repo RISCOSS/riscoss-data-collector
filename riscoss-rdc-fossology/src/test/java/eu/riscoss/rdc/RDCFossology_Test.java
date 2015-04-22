@@ -1,6 +1,5 @@
 package eu.riscoss.rdc;
 
-
 public class RDCFossology_Test {
 	public static void main( String[] args ) throws Exception {
 		
