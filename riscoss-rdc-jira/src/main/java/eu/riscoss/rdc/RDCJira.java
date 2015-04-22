@@ -27,6 +27,16 @@ import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientF
 import eu.riscoss.dataproviders.RiskData;
 import eu.riscoss.dataproviders.RiskDataType;
 
+
+/**
+ * Provides a data provider for the Jira issue tracker.
+ * Note: Jira access through SSH:
+ * When connecting to a Jira instance that needs ssh authentication, e.g. jira.ow2.org, the missing certificate causes a problem.
+ * It has to be retrieved (e.g. from the browser, exporting it as a .der file) and added to the local JAVA keystore cacert file:
+ * ..\Java\jre7\bin>keytool -import -alias jira.ow2.org -keystore ../lib/security/cacerts -file jira.ow2.org.der
+ * @author mirko
+ *
+ */
 public class RDCJira implements RDC {
 	
 	static Map<String,RDCParameter> parameterMap;
@@ -34,10 +44,12 @@ public class RDCJira implements RDC {
 	static {
 		parameterMap = new HashMap<>();
 		
-		parameterMap.put( "JIRA_URL", new RDCParameter( "JIRA_URL", "", "http://jira.xwiki.org", null ) );
-		parameterMap.put( "JIRA_AnonymousAuthentication", new RDCParameter( "JIRA_AnonymousAuthentication", "", "true", null ) );
+		parameterMap.put( "JIRA_URL", new RDCParameter( "JIRA_URL", "Pay attention: https needs proper ssh keys in the system.", "http://jira.xwiki.org", null ) );
+		parameterMap.put( "JIRA_AnonymousAuthentication", new RDCParameter( "JIRA_AnonymousAuthentication", "If false, username and password are needed.", "true", null ) );
 		parameterMap.put( "JIRA_Username", new RDCParameter( "JIRA_Username", "", "username", null ) );
 		parameterMap.put( "JIRA_Password", new RDCParameter( "JIRA_Password", "", "password", null ) );
+		parameterMap.put( "JIRA_InitialDate", new RDCParameter( "JIRA_InitialDate", "The initial Date for downloading issues.", "2015/01/01", "2015/03/01" ) );
+		parameterMap.put( "JIRA_Project", new RDCParameter( "JIRA_Project", "The Jira subfolder which contains the project, if more projects are hosted on the same Jira.", "Projectname", "" ) );
 	}
 	
 	
@@ -144,7 +156,7 @@ public class RDCJira implements RDC {
 		String username = params.get("JIRA_Username");
 		String password = params.get("JIRA_Password");
 		String initialDate = params.get("JIRA_InitialDate");
-		
+		System.out.println("initialdate "+initialDate);		
 		JiraLogStatistics statistics = null;
 		try {
 			statistics = getStatistics(jiraURL, jiraProject, anonymousAuthentication, username, password, initialDate);
