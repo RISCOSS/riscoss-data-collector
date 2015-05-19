@@ -48,7 +48,7 @@ public class RDCFossology implements RDC {
 		parameterMap.put( "fossologyFilterExtensions",
 				new RDCParameter( "fossologyFilterExtensions", "", "true", "true" ) );
 		parameterMap.put( "fossologyAcceptedExtensions",
-				new RDCParameter( "fossologyAcceptedExtensions", "", "java,cpp,jj,js,jsp,php,py,jape,aj,jspf,jsb,groovy", "java,cpp,jj,js,jsp,php,py,jape,aj,jspf,jsb,groovy" ) );
+				new RDCParameter( "fossologyAcceptedExtensions", "", "java,cpp,jj,js,jsp,php,py,jape,aj,jspf,jsb,groovy,rb,gemspec,c,h", "java,cpp,jj,js,jsp,php,py,jape,aj,jspf,jsb,groovy,rb,gemspec,c,h" ) );
 	}
 	
 	static String[] names = {
@@ -60,7 +60,8 @@ public class RDCFossology implements RDC {
 		"percentage-of-files-with-permissive-license",
 		"files-with-commercial-license",
 		"percentage-of-files-with-public-domain-license",
-		"percentage-of-files-with-multiple-license"
+		"percentage-of-files-with-multiple-license",
+		"number-of-files-analysed"
 	};
 	
 	
@@ -159,19 +160,21 @@ public class RDCFossology implements RDC {
 		Integer numPublicDomain = licenseBuckets.get("Public domain");
 		Integer numMultiplyLicensed = licenseBuckets.get("_num_multiply_licensed_files_");
 		
-		map.add( "number-of-different-licenses", RiskDataType.NUMBER, licenseCount );
-		map.add( "percentage-of-files-without-license", RiskDataType.NUMBER, numNoLicense/total );
-		map.add( "files-with-unknown-license", RiskDataType.NUMBER, numUnknown/total );
-		map.add( "copyleft-licenses", RiskDataType.NUMBER, numCopyleft/total );
-		map.add( "copyleft-licenses-with-linking", RiskDataType.NUMBER, numLinkingPermitted/total );
-		map.add( "percentage-of-files-with-permissive-license", RiskDataType.NUMBER, numPermissive/total );
-		map.add( "files-with-commercial-license", RiskDataType.NUMBER, numCommercial/total );
-		if( numMultiplyLicensed != null )
-			map.add( "percentage-of-files-with-multiple-license", RiskDataType.NUMBER, numMultiplyLicensed/total );
-		
+		map.add("number-of-different-licenses", RiskDataType.NUMBER, licenseCount);
+		if (total > 0) {
+			map.add("percentage-of-files-without-license", RiskDataType.NUMBER, numNoLicense / total);
+			map.add("files-with-unknown-license", RiskDataType.NUMBER, numUnknown / total);
+			map.add("copyleft-licenses", RiskDataType.NUMBER, numCopyleft / total);
+			map.add("copyleft-licenses-with-linking", RiskDataType.NUMBER, numLinkingPermitted / total);
+			map.add("percentage-of-files-with-permissive-license", RiskDataType.NUMBER, numPermissive / total);
+			map.add("files-with-commercial-license", RiskDataType.NUMBER, numCommercial / total);
+			map.add("number-of-files-analysed", total);
+			if (numMultiplyLicensed != null)
+				map.add("percentage-of-files-with-multiple-license", RiskDataType.NUMBER, numMultiplyLicensed / total);
+		}
 		return map;
 	}
-	
+
 	/**
 	 * Parses a Fossology-generated License txt file with list of files and licenses. Example row: 
 	 * SAT4J 2.3.3/SAT4J 2.3/Sat4J-2.3.3/plugin.properties: EPL-1.0 ,LGPL-2.1+
