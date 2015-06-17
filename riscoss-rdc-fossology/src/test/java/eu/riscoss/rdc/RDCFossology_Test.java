@@ -6,12 +6,13 @@ public class RDCFossology_Test {
 		RDCFactory.get().registerRDC( new RDCFossology() );
 		
 		new RDCRunner().run( new String[] {
-				"-entity=x",
-				"-print",
+				"-entity=A",
+//				"-print",
 				"-rdc=Fossology",
 				"-fossologyScanType=overview",
 				"-targetFossologyList=http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext",
-				"-targetFossology=http://fossology.ow2.org/?mod=nomoslicense&upload=38&item=292002"
+				"-targetFossology=http://fossology.ow2.org/?mod=nomoslicense&upload=38&item=292002",
+				"-rdr=http://riscossplatform.ow2.org/riscoss-rdr/"
 		} );
 		
 //		RDC rdc = new RDCFossology();

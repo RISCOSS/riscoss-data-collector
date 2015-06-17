@@ -149,7 +149,7 @@ public class RDCFossology implements RDC {
 				map.put( "Measure_Fossology." + licenseBucket, rd );
 			}
 		
-		float total =  licenseBuckets.get("_sum_"); //to make sure that the result of the division is a float //number of files
+		double total =  licenseBuckets.get("_sum_"); //to make sure that the result of the division is a float //number of files
 		Integer licenseCount = licenseBuckets.get("_count_"); //number of licenses found
 		Integer numPermissive = licenseBuckets.get("Permissive License");
 		Integer numCopyleft = licenseBuckets.get("FSF Copyleft");

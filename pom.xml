@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.riscoss.rdc</groupId>
 	<artifactId>riscoss-rdc-bundle</artifactId>
-	<version>0.24-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>RISCOSS RDC - Parent POM</name>

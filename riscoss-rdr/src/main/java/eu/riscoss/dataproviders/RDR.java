@@ -34,8 +34,18 @@ public class RDR
         riskDataJson.addProperty("type", riskData.getType().toString());
 
         switch (riskData.getType()) {
-            case NUMBER:
-                riskDataJson.addProperty("value", ((Double) riskData.getValue()).isNaN()?0.0:(Double) riskData.getValue());
+            case NUMBER: {
+            	Object o = riskData.getValue();
+            	if( o instanceof Float ) {
+            		riskDataJson.addProperty("value", ((Float) riskData.getValue()).isNaN()?0.0:(Float) riskData.getValue());
+            	}
+            	else if( o instanceof Double ) {
+            		riskDataJson.addProperty("value", ((Double) riskData.getValue()).isNaN()?0.0:(Double) riskData.getValue());
+            	}
+            	else if( o instanceof Integer ) {
+            		riskDataJson.addProperty("value", (Integer) riskData.getValue());
+            	}
+            }
                 break;
             case EVIDENCE:
                 Evidence evidence = (Evidence) riskData.getValue();
