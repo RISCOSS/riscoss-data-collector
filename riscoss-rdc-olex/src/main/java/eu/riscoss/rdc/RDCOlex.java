@@ -1,11 +1,8 @@
 package eu.riscoss.rdc;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,16 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -140,7 +129,7 @@ public class RDCOlex implements RDC {
 			document = Jsoup.parse(file, "UTF-8", "http://localhost");
 		}
 
-		List<LicenseEntry> llist = new ArrayList<LicenseEntry>(); // list of
+		List<LicenseEntryOlex> llist = new ArrayList<LicenseEntryOlex>(); // list of
 																	// licenses
 																	// in the
 																	// fossology
@@ -162,7 +151,7 @@ public class RDCOlex implements RDC {
 																	// single
 																	// license
 																	// only!!
-				llist.add(new LicenseEntry(1, license)); // 1: number of
+				llist.add(new LicenseEntryOlex(1, license)); // 1: number of
 															// occurrences
 			}
 		}
@@ -178,7 +167,7 @@ public class RDCOlex implements RDC {
 
 		boolean matched = false;
 		int numUnknown = 0;
-		for (LicenseEntry le : llist) {
+		for (LicenseEntryOlex le : llist) {
 			for (String licenseType : licenseTypes) {// cycles on license types
 														// from config file
 				if (le.matchesOneOf(licensesMap.get(licenseType), licenseType)) {
@@ -199,6 +188,7 @@ public class RDCOlex implements RDC {
 		}
 
 		licenseBuckets.put("#LicenseCount", llist.size());
+		licenseBuckets.put("#UnknownLicensesCount", numUnknown);
 
 		return licenseBuckets;
 	}

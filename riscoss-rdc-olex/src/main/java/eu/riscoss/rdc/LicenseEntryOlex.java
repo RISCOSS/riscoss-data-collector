@@ -6,29 +6,29 @@ package eu.riscoss.rdc;
 
 import java.util.Collection;
 
-public class LicenseEntry {
+public class LicenseEntryOlex {
 	public int count;
 	private final String name;
 	public String licensetype="unknown";
 
-	public LicenseEntry(int c, String n) {
+	public LicenseEntryOlex(int c, String n) {
 		count=c;
 		name=n;
 	}
-	public LicenseEntry matches(String s){
+	public LicenseEntryOlex matches(String s){
 		if (name.contains(s))
 			return this;
 		return null;
 	}
 	
-	private LicenseEntry endsWith(String s){
+	private LicenseEntryOlex endsWith(String s){
 		if (name.endsWith(s))
 			return this;
 		return null;
 	}
 	
 	/**
-	 * For matching a license strings
+	 * For matching a license string (using endsWith)
 	 * @param si list of licenses for a licenseType
 	 * @param licenseType e.g. copyleft, permissive, commercial
 	 * @return
