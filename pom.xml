@@ -41,6 +41,7 @@
 		<module>riscoss-rdc-sonar</module>
 		<module>riscoss-rdc-travis_ci</module>
 		<module>riscoss-rdc-limesurvey</module>
+		<module>riscoss-rdc-olex</module>
   	</modules>
 
 </project>
