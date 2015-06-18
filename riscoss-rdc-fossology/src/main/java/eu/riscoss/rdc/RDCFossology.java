@@ -404,10 +404,10 @@ public class RDCFossology implements RDC {
 			if( target.startsWith( "file:" ) )
 				target = target.substring( 5 );
 			
-			File file = new File(target);
+			//File file = new File(target);
 			
 			InputStream in = 
-					RDCFossology.class.getResourceAsStream( "res/LicensesCfg.html" );
+					RDCFossology.class.getResourceAsStream( "res/"+target );
 			//System.out.println("Fossology config file used: "+file.getPath());
 			//System.out.println("Fossology IS file used: "+in.toString());
 			
