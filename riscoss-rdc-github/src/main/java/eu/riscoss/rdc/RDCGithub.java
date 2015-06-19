@@ -66,11 +66,11 @@ public class RDCGithub implements RDC {
 		try {
 			String json = getData();
 			return parseJson( json.substring( json.indexOf( "{" ) ), entity );
-		} catch (org.apache.http.ParseException | IOException e) {
-			e.printStackTrace();
 		}
-		
-		return new HashMap<String,RiskData>();
+		catch( Exception e ) {
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 	
 	Map<String,RiskData> parseJson( String json, String entity ) {
