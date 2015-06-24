@@ -34,8 +34,8 @@ public class RDCOmm implements RDC {
 								null));
 	}
 
-	static String[] names = { "#omm_PDOC", "#omm_STD", "#omm_QTP", "#omm_LCS", "#omm_ENV", "#omm_DFCT", 
-		"#omm_MST", "#omm_CM", "#omm_PP", "#omm_REQM", "#omm_RDMP", "#omm_STK" };
+	static String[] names = { "omm_PDOC", "omm_STD", "omm_QTP", "omm_LCS", "omm_ENV", "omm_DFCT", 
+		"omm_MST", "omm_CM", "omm_PP", "omm_REQM", "omm_RDMP", "omm_STK" };
 
 
 	Map<String, String> parameters = new HashMap<>();
@@ -124,7 +124,6 @@ public class RDCOmm implements RDC {
 											+ ommString);
 							continue;
 						}
-						ommString = "#"+ommString;
 						RiskData rd = new RiskData(ommString, oss_entity,
 								new Date(), RiskDataType.NUMBER, ommValue);
 						map.put(ommString, rd);
