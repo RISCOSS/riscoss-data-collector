@@ -29,7 +29,7 @@ public class RDCOlex implements RDC {
 
 		parameterMap
 				.put("licenseFileOlex", new RDCParameter("licenseFileOlex", "", "LicensesOlexCenatic.html", "LicensesOlexCenatic.html"));
-		parameterMap.put("targetFossology", new RDCParameter("targetOlex", "OpenLogic OLex page link for the OSS entity",
+		parameterMap.put("targetOlex", new RDCParameter("targetOlex", "OpenLogic OLex page link for the OSS entity",
 				"http://olex.openlogic.com/packages/struts", null));
 	}
 

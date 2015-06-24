@@ -13,12 +13,5 @@ public class RDCOlex_Test {
 				"-rdr=http://riscossplatform.ow2.org/riscoss-rdr/"
 		} );
 		
-//		RDC rdc = new RDCFossology();
-//		rdc.setParameter( "targetFossologyList", "http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext" );
-//		rdc.setParameter( "targetFossology", "http://fossology.ow2.org/?mod=nomoslicense&upload=38&item=292002" );
-//		Map<String,RiskData> map = rdc.getIndicators( "" );
-//		for( RiskData rd : map.values() ) {
-//			System.out.println( rd.getId() + " = " + rd.getValue() );
-//		}
 	}
 }

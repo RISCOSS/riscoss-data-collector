@@ -208,7 +208,7 @@ public class RDCFossology implements RDC {
 				
 				entity = response.getEntity();
 				if (entity != null) {
-					InputStream is = entity.getContent();
+					//InputStream is = entity.getContent();
 					br = new BufferedReader(new InputStreamReader(entity.getContent()));
 					
 					//EntityUtils.consume(entity); //release all resources held by the httpEntity
