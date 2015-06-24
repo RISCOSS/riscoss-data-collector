@@ -44,7 +44,7 @@ public class RDCFossology implements RDC {
 		parameterMap.put( "fossologyScanType",
 				new RDCParameter( "fossologyScanType", "'overview' or 'filelist'; default: 'overview'", "overview", "overview" ) );
 		parameterMap.put( "targetFossologyList",
-				new RDCParameter( "targetFossologyList", "", "http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext", null ) );
+				new RDCParameter( "targetFossologyList", "", "http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext", "<GENERATED_BY_targetFossology>" ) );
 		parameterMap.put( "fossologyFilterExtensions",
 				new RDCParameter( "fossologyFilterExtensions", "", "true", "true" ) );
 		parameterMap.put( "fossologyAcceptedExtensions",
@@ -126,6 +126,10 @@ public class RDCFossology implements RDC {
 		HashMap<String, Integer> licenseBuckets;
 		if (scanType.equals("filelist")){
 			String targetFossologyTxt = parameters.get( "targetFossologyList" );
+			if ("<GENERATED_BY_targetFossology>".equals(targetFossologyTxt) && parameters.get("targetFossology") != null) {
+				targetFossologyTxt =
+					parameters.get("targetFossology").replace("nomoslicense", "license-list&output=dltext");
+			}
 			if (targetFossologyTxt == null) {
 				throw new Exception(String.format("%s property not speficied", "targetFossologyList" ));
 			}
