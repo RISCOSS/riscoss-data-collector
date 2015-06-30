@@ -169,6 +169,7 @@ public class RDCFossology implements RDC {
 			map.add("percentage-of-files-with-permissive-license", RiskDataType.NUMBER, numPermissive / total);
 			map.add("files-with-commercial-license", RiskDataType.NUMBER, numCommercial / total);
 			map.add("number-of-files-analysed", total);
+			map.add("percentage-of-files-with-public-domain-license", RiskDataType.NUMBER, numPublicDomain / total);
 			if (numMultiplyLicensed != null)
 				map.add("percentage-of-files-with-multiple-license", RiskDataType.NUMBER, numMultiplyLicensed / total);
 		}

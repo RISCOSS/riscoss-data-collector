@@ -14,8 +14,8 @@ public class RDCGithub_Test {
 				"-print",
 				"-rdc=Github",
 				"-repository=RISCOSS/riscoss-analyser"
+				
 		} );
-		
 		
 //		RDC rdc = new RDCGithub();
 //		rdc.setParameter( "repository", "RISCOSS/riscoss-analyser" );

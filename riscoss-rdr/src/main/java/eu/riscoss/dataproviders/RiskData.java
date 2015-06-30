@@ -24,6 +24,7 @@ public class RiskData
 		setDate( date );
 		setType (type );
 		setValue( value );
+		//System.out.println("RD:"+id+" \t"+type+" \t"+value);
 	}
 	
 	

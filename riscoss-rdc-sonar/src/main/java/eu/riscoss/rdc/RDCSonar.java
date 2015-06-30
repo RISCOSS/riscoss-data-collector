@@ -20,15 +20,15 @@ public class RDCSonar implements RDC {
 		parameterMap = new HashMap<>();
 
 		parameterMap.put("Sonar_resourceKey", new RDCParameter(
-				"Sonar_resourceKey", "", "org.ow2.bonita:bonita-server", null));
-		parameterMap.put("Sonar_host", new RDCParameter("Sonar_host", "",
-				"org.ow2.bonita:bonita-server", null));
+				"Sonar_resourceKey", "Sonar Resource Key on the Sonar host", "org.xwiki.platform:xwiki-platform", null));
+		parameterMap.put("Sonar_host", new RDCParameter("Sonar_host", "Sonar host address",
+				"http://sonar.xwiki.org", null));
 		parameterMap.put("Sonar_singleMetrics", new RDCParameter(
-				"Sonar_singleMetrics", "", "", null));
+				"Sonar_singleMetrics", "Sonar metrics as exposed by the sonar API", "ncloc", "ncloc, duplicated_lines_density, line_coverage, tests"));
 		parameterMap.put("Sonar_historyMetrics", new RDCParameter(
-				"Sonar_historyMetrics", "", "", null));
-		parameterMap.put("Sonar_by_file_Metrics", new RDCParameter(
-				"Sonar_by_file_Metrics", "", "", null));
+				"Sonar_historyMetrics", "Sonar metrics as exposed by the sonar API, returns a list gathered from the available history", "ncloc", "ncloc, comment_lines"));
+		parameterMap.put("Sonar_by_file_Metrics", new RDCParameter("Sonar_by_file_Metrics",
+				"Sonar metrics as exposed by the sonar API, gathered for each file", "ncloc", "ncloc, complexity"));
 	}
 
 	Map<String, String> parameters = new HashMap<>();
@@ -111,8 +111,11 @@ public class RDCSonar implements RDC {
 						new Date(), RiskDataType.DISTRIBUTION, d);
 				map.put("Sonar History " + key, rd);
 			}
+			
 		}
-
+		for (RiskData rd: map.values()) {
+			System.out.println("Data: "+rd.getId()+" "+rd.getValue());
+		}
 		return map; //new HashMap<String, RiskData>();
 	}
 

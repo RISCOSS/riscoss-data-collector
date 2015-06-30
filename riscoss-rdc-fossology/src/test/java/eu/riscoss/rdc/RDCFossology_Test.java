@@ -7,7 +7,7 @@ public class RDCFossology_Test {
 		
 		new RDCRunner().run( new String[] {
 				"-entity=A",
-//				"-print",
+				"-print",
 				"-rdc=Fossology",
 				"-fossologyScanType=overview",
 				"-targetFossologyList=http://fossology.ow2.org/?mod=license-list&upload=38&item=292002&output=dltext",

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,7 +24,10 @@ import eu.riscoss.dataproviders.RiskDataType;
 
 public class RDCGithub implements RDC {
 	
-	static Map<String,String>		names = new HashMap<>();
+	static final String GITHUB_PREFIX = "github:repository-";
+	
+	static Map<String,String>		names = new HashMap<>(); //names published in the rdr 
+	static Map<String,String>		keys = new HashMap<>();
 	static Map<String,RDCParameter>	parameters = new HashMap<>();
 	
 	private HttpClient client = HttpClientBuilder.create().build();
@@ -31,17 +35,34 @@ public class RDCGithub implements RDC {
 	Map<String,String> values = new HashMap<>();
 	
 	static {
-		names.put( "forks", "number" );
-		names.put( "open_issues_count", "number" );
-		names.put( "stargazers_count", "number" );
-		names.put( "created_at", "date" );
-		names.put( "subscribers_count", "number" );
-		names.put( "open_issues", "number" );
-//		names.put( "watchers_count", "number" );
+		//github-specific indicators (not hardcoded, depends on availability!)
+		keys.put( "forks_count", "number" );
+		keys.put( "open_issues_count", "number" );
+		keys.put( "stargazers_count", "number" );
+		keys.put( "created_at", "date" );
+		keys.put( "subscribers_count", "number" );
+		keys.put( "open_issues", "number" );
+		keys.put( "watchers_count", "number" );
+		keys.put( "size", "number" );
+		keys.put( "has_wiki", "boolean" );
+		keys.put( "updated_at", "date" );
+		keys.put( "license", "object" ); //OBJECT NOT IMPLEMENTED! --> boolean "has_license"
+	}
+	
+	static {
+		//github-specific indicators (not hardcoded, depends on availability!)
+		for (Entry<String, String> entry : keys.entrySet()) {
+			if (entry.getKey().equals("license")) 
+				continue;
+			names.put( GITHUB_PREFIX + entry.getKey(), entry.getValue() );
+		}
+		
+		//hardcoded indicators
+		names.put( GITHUB_PREFIX + "has_license", "boolean" ); //OBJECT NOT IMPLEMENTED!
+		//general indicators (hardcoded)
 		names.put( "size", "number" );
-		names.put( "has_wiki", "boolean" );
-		names.put( "updated_at", "date" );
-		names.put( "license", "object" );
+		
+		//names.put( "license", "object" );
 		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
 	}
@@ -81,48 +102,71 @@ public class RDCGithub implements RDC {
 				if( jv instanceof JSONObject ) {
 					JSONObject jo = (JSONObject)jv;
 					for( Object key : jo.keySet() ) {
-						if( RDCGithub.names.keySet().contains( key.toString() ) ) {
-							
-							if( jo.get( key ) == null ) continue;
+						System.out.println(key+" \t"+jo.get(key) );
+						if( keys.keySet().contains( key.toString() ) && (jo.get( key )!=null)) {
 							String value = jo.get( key ).toString();
-							if( "number".equals( names.get( key.toString() ) ) ) {
+							
+							if( "number".equals( keys.get( key.toString() ) ) ) {
 								try {
 									double d = Double.parseDouble( value );
-									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, d );
-									values.put( key.toString(), rd );
-								}
+									RiskData rd = new RiskData( GITHUB_PREFIX + key.toString(), entity, new Date(), RiskDataType.NUMBER, d );
+									values.put( rd.getId(), rd );
+									
+									//hard-coded size value
+									if (key.toString().equals("size")){
+										rd = new RiskData( "size", entity, new Date(), RiskDataType.NUMBER, d );
+										values.put( rd.getId(), rd );
+									}
+									
+								} 
 								catch( Exception ex ) {
+									ex.printStackTrace();
 								}
+
+								
 							}
-							else if( "boolean".equals( names.get( key.toString() ) ) ) {
+							else if( "boolean".equals( keys.get( key.toString() ) ) ) {
 								try {
 									boolean b = Boolean.parseBoolean( value );
-									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, (b ? 1 : 0) );
-									values.put( key.toString(), rd );
-								}
-								catch( Exception ex ) {}
-							}
-							else if( "date".equals( names.get( key.toString() ) ) ) {
-								try {
-									value = value.replaceAll( "T", " " );
-									SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd H:m:s" );
-									Date date = formatter.parse( value );
-									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, date.getTime() );
-									values.put( key.toString(), rd );
+									RiskData rd = new RiskData( GITHUB_PREFIX + key.toString(), entity, new Date(), RiskDataType.NUMBER, (b ? 1 : 0) );
+									values.put( rd.getId(), rd );
 								}
 								catch( Exception ex ) {
 									ex.printStackTrace();
 								}
 							}
-							else if( "boolean".equals( names.get( key.toString() ) ) ) {
+							else if( "date".equals( keys.get( key.toString() ) ) ) {
 								try {
-									RiskData rd = new RiskData( key.toString(), entity, new Date(), RiskDataType.NUMBER, 1 );
-									values.put( key.toString(), rd );
+									value = value.replaceAll( "T", " " );
+									SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd H:m:s" );
+									Date date = formatter.parse( value );
+									RiskData rd = new RiskData( GITHUB_PREFIX + key.toString(), entity, new Date(), RiskDataType.NUMBER, date.getTime() );
+									values.put( rd.getId(), rd );
 								}
-								catch( Exception ex ) {}
+								catch( Exception ex ) {
+									ex.printStackTrace();
+								}
 							}
+							//object currently not implemented in the RDR
+							//implementation: hardcoded, as boolean, adding "has_" (see below)
+//							else if( "object".equals( keys.get( key.toString() ) ) ) {
+//									RiskData rd = new RiskData( GITHUB_PREFIX + key.toString(), entity, new Date(), RiskDataType.NUMBER, 1 );
+//									values.put( rd.getId(), rd );
+//								
+//							}
+							
+						}
+						if (key.toString().equals("license")){
+							RiskData rd;
+							if (jo.get( key ) == null ) 
+								rd = new RiskData( GITHUB_PREFIX + "has_license", entity, new Date(), RiskDataType.NUMBER, 0 );
+							else
+								rd = new RiskData( GITHUB_PREFIX + "has_license", entity, new Date(), RiskDataType.NUMBER, 1 );
+							
+							values.put( rd.getId(), rd );
 						}
 					}
+					
 				}
 			} catch (ParseException e) {
 				e.printStackTrace();
