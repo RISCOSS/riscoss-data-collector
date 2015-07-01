@@ -42,6 +42,7 @@
 		<module>riscoss-rdc-travis_ci</module>
 		<module>riscoss-rdc-limesurvey</module>
 		<module>riscoss-rdc-olex</module>
+		<module>riscoss-rdc-omm</module>
   	</modules>
 
 </project>
