@@ -1,6 +1,6 @@
 # Riscoss Data Collectors (RDC)
 
-[![XWiki labs logo](https://labs.xwiki.com/xwiki/bin/download/Developments/Xlabs/xwiki-labs-project.png "XWiki labs")](https://labs.xwiki.com/xwiki/bin/view/Main/WebHome)
+[![XWiki labs logo](https://raw.githubusercontent.com/xwiki-labs/xwiki-labs-logo/master/projects/xwikilabs/xlabs-project.png "XWiki labs")](https://labs.xwiki.com/xwiki/bin/view/Main/WebHome)
 
 Risk Data Collectors (RDC) are the main agents that are in charge of collecting risk drivers about the entities that are taken into account for the risk analysis, and to send it to the Risk Data Repository to be made available to the other components within the platform.
 
