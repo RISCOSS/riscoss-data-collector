@@ -26,9 +26,25 @@ public class RDCSonar implements RDC {
 		//parameterMap.put("Sonar_singleMetrics", new RDCParameter(
 		//		"Sonar_singleMetrics", "Sonar metrics as exposed by the sonar API", "ncloc", "ncloc, duplicated_lines_density, line_coverage, tests"));
 		
-		parameterMap.put("Sonar_singleMetrics", new RDCParameter(
-				"Sonar_singleMetrics", "Sonar metrics as exposed by the sonar API, see http://docs.sonarqube.org/display/SONARQUBE44/Metric+definitions", "ncloc", "complexity, class_complexity, file_complexity, function_complexity, file_cycles, file_edges_weight, package_tangles, file_tangles, file_tangle_index, package_cycles, package_feedback_edges, package_tangle_index, package_edges_weight, file_feedback_edges, comment_lines, comment_lines_density, public_documented_api_density, public_undocumented_api, duplicated_blocks, duplicated_files, duplicated_lines, duplicated_lines_density, new_violations, new_xxxxx_violations, violations, xxxxx_violations, false_positive_issues, open_issues, confirmed_issues, reopened_issues, weighted_violations, violations_density, sqale_index, accessors, classes, directories, files, generated_lines, generated_ncloc, cobol_inside_ctrlflow_statements, lines, ncloc, cobol_data_division_ncloc, cobol_procedure_division_ncloc, functions, cobol_outside_ctrlflow_statements, projects, public_api, statements, branch_coverage, new_branch_coverage, branch_coverage_hits_data, conditions_by_line, covered_conditions_by_line, coverage, new_coverage, line_coverage, new_line_coverage, coverage_line_hits_data, lines_to_cover, new_lines_to_cover, skipped_tests, uncovered_conditions, new_uncovered_conditions, uncovered_lines, new_uncovered_lines, tests, test_execution_time, test_errors, test_failures, test_success_density"));
-		
+		parameterMap
+				.put("Sonar_singleMetrics",
+						new RDCParameter(
+								"Sonar_singleMetrics",
+								"Sonar metrics as exposed by the sonar API, see http://docs.sonarqube.org/display/SONARQUBE44/Metric+definitions",
+								"ncloc",
+								"complexity, class_complexity, file_complexity, function_complexity, file_cycles, file_edges_weight, package_tangles, "
+								+ "file_tangles, file_tangle_index, package_cycles, package_feedback_edges, package_tangle_index, package_edges_weight, "
+								+ "file_feedback_edges, comment_lines, comment_lines_density, public_documented_api_density, public_undocumented_api, "
+								+ "duplicated_blocks, duplicated_files, duplicated_lines, duplicated_lines_density, new_violations, new_xxxxx_violations, "
+								+ "violations, xxxxx_violations, false_positive_issues, open_issues, confirmed_issues, reopened_issues, weighted_violations, "
+								+ "violations_density, sqale_index, accessors, classes, directories, files, generated_lines, generated_ncloc, "
+								+ "cobol_inside_ctrlflow_statements, lines, ncloc, cobol_data_division_ncloc, cobol_procedure_division_ncloc, "
+								+ "functions, cobol_outside_ctrlflow_statements, projects, public_api, statements, branch_coverage, new_branch_coverage, "
+								+ "branch_coverage_hits_data, conditions_by_line, covered_conditions_by_line, coverage, new_coverage, line_coverage, "
+								+ "new_line_coverage, coverage_line_hits_data, lines_to_cover, new_lines_to_cover, skipped_tests, uncovered_conditions, "
+								+ "new_uncovered_conditions, uncovered_lines, new_uncovered_lines, tests, test_execution_time, test_errors, test_failures, "
+								+ "test_success_density"));
+
 		parameterMap.put("Sonar_historyMetrics", new RDCParameter(
 				"Sonar_historyMetrics", "Sonar metrics as exposed by the sonar API, returns a list gathered from the available history", "ncloc", "ncloc, comment_lines"));
 		parameterMap.put("Sonar_by_file_Metrics", new RDCParameter("Sonar_by_file_Metrics",

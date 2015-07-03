@@ -16,7 +16,7 @@ public class RDCSonar_Test {
 				"-rdc=Sonar",
 				"-Sonar_historyMetrics=ncloc, comment_lines",
 				"-Sonar_by_file_Metrics=nclock, complexity",
-				"-Sonar_singleMetrics=ncloc, duplicated_lines_density, line_coverage, tests",
+				//"-Sonar_singleMetrics=ncloc, duplicated_lines_density, line_coverage, tests",
 				"-Sonar_resourceKey=org.xwiki.platform:xwiki-platform",
 				"-Sonar_host=http://sonar.xwiki.org"
 		} );
