@@ -151,4 +151,17 @@ public class RiskDataUtils {
 		return quantityTable.getFractions(datapoints.size());
 	}
 	
+	/**
+	 * Computes list average.
+	 * @param l
+	 * @return 0 if the list is empty!
+	 */
+	public static Double getAverage(List<Double> l){
+		Double sumc = 0.0;
+		for (Double num : l)
+			sumc += num;
+		return  sumc / l.size();
+	}
+	
+
 }

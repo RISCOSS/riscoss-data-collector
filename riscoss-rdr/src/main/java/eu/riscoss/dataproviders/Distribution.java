@@ -14,6 +14,11 @@ public class Distribution
             this.values.add(d);
         }
     }
+    
+    public Distribution(List<Double> values)
+    {
+    	this.values = values;
+    }
 
     public List<Double> getValues()
     {
@@ -24,4 +29,25 @@ public class Distribution
     {
         this.values = values;
     }
+    
+    @Override
+    public String toString() {
+    	String ret = "(";
+    	for (Double d : values) {
+    		ret=(ret.equals("(")?ret.concat(""+d):ret.concat(", "+d));
+		}
+    	return ret+")";
+    }
+    
+	/**
+	 * Computes the average.
+	 * @param l
+	 * @return 0 if the list is empty!
+	 */
+	public Double getAverage(){
+		Double sumc = 0.0;
+		for (Double num : values)
+			sumc += num;
+		return  sumc / values.size();
+	}
 }
