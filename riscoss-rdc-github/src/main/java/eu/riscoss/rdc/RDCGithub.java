@@ -45,13 +45,13 @@ public class RDCGithub implements RDC {
 	
 	static {
 		//github-specific indicators (not hardcoded, depends on availability!)
-		keys.put( "forks_count", "number" );
-		keys.put( "open_issues_count", "number" );
-		keys.put( "stargazers_count", "number" );
+		keys.put( "forks_count", "number" );//== network_count == forks
+		keys.put( "open_issues_count", "number" ); //all open issues created since the start of the project
+		keys.put( "stargazers_count", "number" );//these are the "STAR" on the github web interface, same than watchers_count!
 		keys.put( "created_at", "date" );
-		keys.put( "subscribers_count", "number" );
+		keys.put( "subscribers_count", "number" );//these are the "WATCH" on the github web interface!
 		keys.put( "open_issues", "number" );
-		keys.put( "watchers_count", "number" );
+		keys.put( "watchers_count", "number" );//these are the "STAR" on the github web interface!
 		keys.put( "size", "number" );
 		keys.put( "has_wiki", "boolean" );
 		keys.put( "updated_at", "date" );
@@ -67,20 +67,30 @@ public class RDCGithub implements RDC {
 			names.put( GITHUB_PREFIX + entry.getKey(), entry.getValue() );
 		}
 		
+		//number of users that did commits
 		names.put( GITHUB_PREFIX + "contributors", "number" );
+		//sum of all the commits done
 		names.put( GITHUB_PREFIX + "contributions_sum", "number" );
+		
+		//is a Travis CI file present?
 		names.put( GITHUB_PREFIX + "ci_link", "boolean" );
 		
-		names.put( GITHUB_PREFIX + "issue-closedratio", "number");
+		//issues currently open (in last year's issues)
 		names.put( GITHUB_PREFIX + "issue-openratio", "number");
+		//issues closed till now (in last year's issues)
+		names.put( GITHUB_PREFIX + "issue-closedratio", "number");
 		
+		//milliseconds for closing an issue, in history order
 		names.put( GITHUB_PREFIX + "issue-open-close-diff", "numberlist");
 		 //average milliseconds for closing an issue
 		names.put( GITHUB_PREFIX + "issue-open-close-diff-avg", "number"); 
 		names.put( GITHUB_PREFIX + "issue-comments", "numberlist");
+		//average number of comments per issue
 		names.put( GITHUB_PREFIX + "issue-comments-avg", "number");
 		
+		//weekly commit count for the last 52 weeks
 		names.put( GITHUB_PREFIX + "participation", "numberlist");
+		//weekly commit count sum (= commits in the last year)
 		names.put( GITHUB_PREFIX + "participation_sum", "number");
 				
 		//hardcoded indicators
@@ -210,7 +220,7 @@ public class RDCGithub implements RDC {
 			
 			double sum = ja.size();
 			//assert(sum == openissues + closedissues);  //??sure??
-			
+			System.out.println(openissues+"   openissues  "+closedissues+" "+sum);
 			RiskData rd = new RiskData(GITHUB_PREFIX + "issue-closedratio", entity, new Date(), RiskDataType.NUMBER, closedissues/sum);
 			values.put(rd.getId(), rd);
 			rd = new RiskData(GITHUB_PREFIX + "issue-openratio", entity, new Date(), RiskDataType.NUMBER, openissues/sum);
@@ -247,6 +257,7 @@ public class RDCGithub implements RDC {
 
 				Distribution d = new Distribution();
 				d.setValues(doublelist);
+				//weekly commit count for the repository owner and everyone else, 52 weeks
 				RiskData rd = new RiskData(GITHUB_PREFIX + "participation", entity, new Date(),	RiskDataType.DISTRIBUTION, d);
 				values.put(rd.getId(), rd);
 				rd = new RiskData(GITHUB_PREFIX + "participation_sum", entity, new Date(), RiskDataType.NUMBER, sum);
@@ -271,9 +282,10 @@ public class RDCGithub implements RDC {
 			}
 		}	
 
-		
+		//number of contributors (i.e. persons that did a commit)
 		RiskData rd = new RiskData( GITHUB_PREFIX + "contributors", entity, new Date(), RiskDataType.NUMBER, contributors );
 		values.put( rd.getId(), rd );
+		//sum of all the commits done
 		rd = new RiskData( GITHUB_PREFIX + "contributions_sum", entity, new Date(), RiskDataType.NUMBER, contributions );
 		values.put( rd.getId(), rd );
 	}
