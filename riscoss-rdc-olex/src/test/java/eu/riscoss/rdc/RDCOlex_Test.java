@@ -7,7 +7,7 @@ public class RDCOlex_Test {
 		
 		new RDCRunner().run( new String[] {
 				"-entity=Struts",
-//				"-print",
+			"-print",
 				"-rdc=Olex",
 				"-targetOlex=http://olex.openlogic.com/packages/opensimmpls",
 				"-rdr=http://riscossplatform.ow2.org/riscoss-rdr/"

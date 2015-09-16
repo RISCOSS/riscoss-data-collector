@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,8 +18,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import eu.riscoss.dataproviders.Distribution;
 import eu.riscoss.dataproviders.RiskData;
 import eu.riscoss.dataproviders.RiskDataType;
+import eu.riscoss.dataproviders.RiskDataUtils;
 
 public class RDCOlex implements RDC {
 
@@ -34,15 +37,22 @@ public class RDCOlex implements RDC {
 	}
 
 	static String[] names = { "#MIT", "#BSD4", "#BSD3", "#ASL1", "#ASL2", "#Artistic2", "#LGPL2.1", "#LGPL2.1+", "#LGPL3+", "#MPL",
-			"#CDDL", "#CPL-EPL", "#EUPL", "#GPL2", "#GPL2+", "#GPL3", "#AGPL3", "#LicenseCount" };
+			"#CDDL", "#CPL-EPL", "#EUPL", "#GPL2", "#GPL2+", "#GPL3", "#AGPL3", "#LicenseCount", "licenses"};
 
 	Map<String, String> parameters = new HashMap<>();
+	
+	/**
+	 * "Distribution" list for all licenses, needed for BN-based models. 
+	 */
+	private ArrayList<Double> licensesList;
+	private ArrayList<Double>  equalLicenses = new ArrayList<Double>();
+	
+	
 
 	public RDCOlex() {
 	}
 
 	public Map<String, RiskData> getIndicators(String entity) {
-
 		try {
 			return createIndicators(entity);
 		} catch (Exception ex) {
@@ -98,10 +108,28 @@ public class RDCOlex implements RDC {
 				map.put(licenseBucket, rd);
 			}
 
-		// print map
-		// for (Entry<String, RiskData> e : map.entrySet()) {
-		// System.out.println(e.getKey()+"  "+e.getValue().getId()+"  "+e.getValue().getValue());
-		// }
+		
+		//new indicators needed for KPA BN (bn_cenatic)
+		
+		map.put("licenses", new RiskData("licenses", entity, new Date(), RiskDataType.DISTRIBUTION, new Distribution(licensesList)));	
+		System.out.println("LB: licenses\t" + licensesList);
+		
+		int nL = licenseBuckets.get("#LicenseCount");
+		//1st slot "One", 2nd slot: many
+		Distribution d = new Distribution(nL<=1?1.0:0.0, nL>1?1.0:0.0); 
+		map.put("Target_license", new RiskData("Target_license", entity, new Date(), RiskDataType.DISTRIBUTION, d));
+		
+		d = new Distribution( equalLicenses );
+		map.put("Equal_licenses", new RiskData("Equal_licenses", entity, new Date(), RiskDataType.DISTRIBUTION, d));
+		
+		
+		
+		//additional for BNs
+		d = new Distribution(nL<=1?1d:0d, nL==2?1d:0d, nL==3?1d:0d, nL==4?1d:0d, nL>4?1d:0d); //levels defined ad hoc for now!
+		//RiskDataUtils.getNumberDistribution(new ArrayList<Double>() , levels)...
+		map.put("Number_of_license_types", new RiskData("Number_of_license_types", entity, new Date(), RiskDataType.DISTRIBUTION, d));
+				
+		//map.put("Type_of_linking",.... can onlz be decided when the component is in use --> user input!
 
 		return map;
 	}
@@ -129,11 +157,7 @@ public class RDCOlex implements RDC {
 			document = Jsoup.parse(file, "UTF-8", "http://localhost");
 		}
 
-		List<LicenseEntryOlex> llist = new ArrayList<LicenseEntryOlex>(); // list of
-																	// licenses
-																	// in the
-																	// fossology
-																	// file
+		List<LicenseEntryOlex> llist = new ArrayList<LicenseEntryOlex>(); // list of licenses in the fossology file
 		// Element entry =
 		// document.select(":containsOwn(pkg_license_data)").first();
 		Element entry = document.select("tr#pkg_license_data > td").first();
@@ -146,17 +170,13 @@ public class RDCOlex implements RDC {
 			if (licStr.startsWith("/licenses/")) {
 				String license = licStr.substring(10); // delete leading
 														// /licenses/
-				System.out.println("License detected: " + license);// for now
-																	// for
-																	// single
-																	// license
-																	// only!!
-				llist.add(new LicenseEntryOlex(1, license)); // 1: number of
-															// occurrences
+				System.out.println("License detected: " + license);// for now for single
+																	// license only!!
+				llist.add(new LicenseEntryOlex(1, license)); // 1: number of occurrences
 			}
 		}
 		// get license type buckets
-		HashMap<String, Integer> licenseBuckets = new HashMap<String, Integer>();
+		LinkedHashMap<String, Integer> licenseBuckets = new LinkedHashMap<String, Integer>();
 		// int total=0;
 
 		Set<String> licenseTypes = licensesMap.keySet();
@@ -164,6 +184,8 @@ public class RDCOlex implements RDC {
 		for (String licensetype : licenseTypes) {
 			licenseBuckets.put(licensetype, 0);
 		}
+		
+		
 
 		boolean matched = false;
 		int numUnknown = 0;
@@ -186,10 +208,37 @@ public class RDCOlex implements RDC {
 				System.err.println("Unknown license: " + le.getName());
 			}
 		}
-
-		licenseBuckets.put("#LicenseCount", llist.size());
+		
+		// Create a "Distribution" list for all licenses, needed for BN-based models. 
+		// Sort order as defined in LicensesOlexCenatic.html
+		// at this moment, only the licenses, in correct order, are in the licenseBuckets map!
+		licensesList = new ArrayList<Double>();
+		double[] equalLic = new double[5];
+		int equalLicCount = 0;
+		for (String key : licenseBuckets.keySet()) {
+			Integer value = licenseBuckets.get(key);
+			licensesList.add(value.doubleValue()/llist.size());
+			
+			//equal licenses: 
+			//s1: # none equal, s2: # 2 equal, s3: # 3 equal, s4: # 4 equal, s5: # >4 equal
+			if (value>0) {
+				if (value <= 4){
+					equalLic[value-1]++;
+				} else { //if value > 4
+					equalLic[4]++;
+				}
+				equalLicCount++;
+			}
+		}
+		
+		for (double d : equalLic) {
+			equalLicenses.add(d/equalLicCount); //attention: order is important!
+		}
+		
 		licenseBuckets.put("#UnknownLicensesCount", numUnknown);
-
+		
+		licenseBuckets.put("#LicenseCount", llist.size());
+		
 		return licenseBuckets;
 	}
 
@@ -223,7 +272,7 @@ public class RDCOlex implements RDC {
 	 * @throws IOException
 	 */
 	protected static HashMap<String, Collection<String>> parseLicensesFile(String target) throws IOException {
-		HashMap<String, Collection<String>> result = new HashMap<String, Collection<String>>();
+		HashMap<String, Collection<String>> result = new LinkedHashMap<String, Collection<String>>();
 		Document document;
 		if (target.startsWith("http")) {
 			document = Jsoup.connect(target).get();
@@ -245,7 +294,6 @@ public class RDCOlex implements RDC {
 		for (Element element : licensesLinks) {
 			String licenseName = element.attr("id");// element.child(0).text();
 			// System.out.println(element.text());
-
 			String s = element.text(); // with or without <p> tags
 			Collection<String> licensesList = Arrays.asList(s.split("\\s*\\|\\s*"));
 			result.put(licenseName, licensesList);
