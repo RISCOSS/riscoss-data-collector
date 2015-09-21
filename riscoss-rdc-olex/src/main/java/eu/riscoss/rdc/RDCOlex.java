@@ -37,7 +37,8 @@ public class RDCOlex implements RDC {
 	}
 
 	static String[] names = { "#MIT", "#BSD4", "#BSD3", "#ASL1", "#ASL2", "#Artistic2", "#LGPL2.1", "#LGPL2.1+", "#LGPL3+", "#MPL",
-			"#CDDL", "#CPL-EPL", "#EUPL", "#GPL2", "#GPL2+", "#GPL3", "#AGPL3", "#LicenseCount", "licenses"};
+			"#CDDL", "#CPL-EPL", "#EUPL", "#GPL2", "#GPL2+", "#GPL3", "#AGPL3", "#LicenseCount", "licenses", 
+			"Target_license", "Equal_licenses", "Number_of_license_types"};
 
 	Map<String, String> parameters = new HashMap<>();
 	
