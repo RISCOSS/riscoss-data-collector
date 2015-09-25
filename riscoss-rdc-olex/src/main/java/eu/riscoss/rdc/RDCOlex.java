@@ -46,10 +46,8 @@ public class RDCOlex implements RDC {
 	 * "Distribution" list for all licenses, needed for BN-based models. 
 	 */
 	private ArrayList<Double> licensesList;
-	private ArrayList<Double>  equalLicenses = new ArrayList<Double>();
+	private ArrayList<Double> equalLicenses;
 	
-	
-
 	public RDCOlex() {
 	}
 
@@ -122,8 +120,6 @@ public class RDCOlex implements RDC {
 		
 		d = new Distribution( equalLicenses );
 		map.put("Equal_licenses", new RiskData("Equal_licenses", entity, new Date(), RiskDataType.DISTRIBUTION, d));
-		
-		
 		
 		//additional for BNs
 		d = new Distribution(nL<=1?1d:0d, nL==2?1d:0d, nL==3?1d:0d, nL==4?1d:0d, nL>4?1d:0d); //levels defined ad hoc for now!
@@ -214,6 +210,7 @@ public class RDCOlex implements RDC {
 		// Sort order as defined in LicensesOlexCenatic.html
 		// at this moment, only the licenses, in correct order, are in the licenseBuckets map!
 		licensesList = new ArrayList<Double>();
+		equalLicenses = new ArrayList<Double>();
 		double[] equalLic = new double[5];
 		int equalLicCount = 0;
 		for (String key : licenseBuckets.keySet()) {
