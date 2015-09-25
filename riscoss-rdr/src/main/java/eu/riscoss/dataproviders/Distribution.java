@@ -32,11 +32,20 @@ public class Distribution
     
     @Override
     public String toString() {
-    	String ret = "(";
-    	for (Double d : values) {
-    		ret=(ret.equals("(")?ret.concat(""+d):ret.concat(", "+d));
+//    	String ret = "(";
+//    	for (Double d : values) {
+//    		ret=(ret.equals("(")?ret.concat(""+d):ret.concat(", "+d));
+//		}
+//    	return ret+")";
+    	
+    	//attention: ToString is used Client-side for writing data into the RDR! Now it needs EXACTLY this format.
+    	String str = "";
+		String sep = "";
+		for( double val : values ) {
+			str += sep + val;
+			sep = ";";
 		}
-    	return ret+")";
+		return str;
     }
     
 	/**
