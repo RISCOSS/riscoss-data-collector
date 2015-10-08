@@ -98,6 +98,13 @@ public class RDCGithub implements RDC {
 		//general indicators (hardcoded)
 		names.put( "size", "number" );
 		
+		//commit distributions
+		names.put(GITHUB_PREFIX + "percent_contributors_did_99_percent_of_commits", "number");
+		names.put(GITHUB_PREFIX + "percent_contributors_did_95_percent_of_commits", "number");
+		names.put(GITHUB_PREFIX + "percent_contributors_did_90_percent_of_commits", "number");
+		names.put(GITHUB_PREFIX + "percent_contributors_did_80_percent_of_commits", "number");
+		names.put(GITHUB_PREFIX + "percent_contributors_did_50_percent_of_commits", "number");
+		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
 	}
 	
@@ -274,12 +281,20 @@ public class RDCGithub implements RDC {
 			JSONArray ja = (JSONArray)jv;
 
 			contributors = ja.size();
+			//System.out.println("contributors: "+contributors);
 
 			for (Object o : ja){
 				JSONObject jo = (JSONObject)o;
 				//System.out.println(jo.get("contributions"));
 				contributions += Integer.parseInt(jo.get("contributions").toString());
 			}
+			
+			getContribDistrib(ja, contributions, 99, entity, values);
+			getContribDistrib(ja, contributions, 95, entity, values);
+			getContribDistrib(ja, contributions, 90, entity, values);
+			getContribDistrib(ja, contributions, 80, entity, values);
+			getContribDistrib(ja, contributions, 50, entity, values);		
+
 		}	
 
 		//number of contributors (i.e. persons that did a commit)
@@ -290,6 +305,24 @@ public class RDCGithub implements RDC {
 		values.put( rd.getId(), rd );
 	}
 	
+	//TODO: rewrite in a more efficient way, caching the data
+	private void getContribDistrib(JSONArray ja, int contributions, int limit, String entity, Map<String, RiskData> values) {
+		int currlimit = contributions * limit / 100; //truncating is ok
+		int sum = 0;
+		int num = 0;
+		for (Object o : ja){
+			JSONObject jo = (JSONObject)o;
+			sum += Integer.parseInt(jo.get("contributions").toString());
+			num++;
+			if (sum>=currlimit)
+				break;
+		}
+		String idName = GITHUB_PREFIX + "percent_contributors_did_"+limit+"_percent_of_commits";
+		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, num );
+		values.put( rd.getId(), rd );
+		//System.out.println("with limit "+limit+"% : "+num);
+	}
+
 	private void parseJsonRepo( JSONAware jv, String entity, Map<String, RiskData> values ) {
 		if( jv instanceof JSONObject ) {
 			JSONObject jo = (JSONObject)jv;
