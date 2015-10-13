@@ -1,16 +1,16 @@
 package eu.riscoss.rdc;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -29,7 +29,6 @@ import org.json.simple.parser.ParseException;
 import eu.riscoss.dataproviders.Distribution;
 import eu.riscoss.dataproviders.RiskData;
 import eu.riscoss.dataproviders.RiskDataType;
-import eu.riscoss.dataproviders.RiskDataUtils;
 
 public class RDCGithub implements RDC {
 	
@@ -42,12 +41,13 @@ public class RDCGithub implements RDC {
 	private HttpClient client = HttpClientBuilder.create().build();
 	
 	Map<String,String> values = new HashMap<>();
+	String repository = "";
 	
 	static {
 		//github-specific indicators (not hardcoded, depends on availability!)
 		keys.put( "forks_count", "number" );//== network_count == forks
 		keys.put( "open_issues_count", "number" ); //all open issues created since the start of the project
-		keys.put( "stargazers_count", "number" );//these are the "STAR" on the github web interface, same than watchers_count!
+		keys.put( "stargazers_count", "number" );//these are thimport eu.riscoss.dataproviders.RiskDataUtils;e "STAR" on the github web interface, same than watchers_count!
 		keys.put( "created_at", "date" );
 		keys.put( "subscribers_count", "number" );//these are the "WATCH" on the github web interface!
 		keys.put( "open_issues", "number" );
@@ -72,6 +72,8 @@ public class RDCGithub implements RDC {
 		//sum of all the commits done
 		names.put( GITHUB_PREFIX + "contributions_sum", "number" );
 		
+		names.put( GITHUB_PREFIX + "commits_per_contributor", "number" );
+		
 		//is a Travis CI file present?
 		names.put( GITHUB_PREFIX + "ci_link", "boolean" );
 		
@@ -80,12 +82,16 @@ public class RDCGithub implements RDC {
 		//issues closed till now (in last year's issues)
 		names.put( GITHUB_PREFIX + "issue-closedratio", "number");
 		
-		//milliseconds for closing an issue, in history order
+		//milliseconds for closing an issue, in history order, last year
 		names.put( GITHUB_PREFIX + "issue-open-close-diff", "numberlist");
-		 //average milliseconds for closing an issue
+		 //average milliseconds for closing an issue, last year
 		names.put( GITHUB_PREFIX + "issue-open-close-diff-avg", "number"); 
+		
+		//pull requests last year (from the issues list)
+		names.put( GITHUB_PREFIX + "pull-requests", "number");
+		
 		names.put( GITHUB_PREFIX + "issue-comments", "numberlist");
-		//average number of comments per issue
+		//average number of comments per issue, last year
 		names.put( GITHUB_PREFIX + "issue-comments-avg", "number");
 		
 		//weekly commit count for the last 52 weeks
@@ -104,6 +110,9 @@ public class RDCGithub implements RDC {
 		names.put(GITHUB_PREFIX + "percent_contributors_did_90_percent_of_commits", "number");
 		names.put(GITHUB_PREFIX + "percent_contributors_did_80_percent_of_commits", "number");
 		names.put(GITHUB_PREFIX + "percent_contributors_did_50_percent_of_commits", "number");
+		
+		//age in years, calculated from the reopsitories' "created_at" field
+		names.put(GITHUB_PREFIX + "repository_age_years", "number");
 		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
 	}
@@ -125,29 +134,38 @@ public class RDCGithub implements RDC {
 	
 	@Override
 	public Map<String, RiskData> getIndicators( String entity ) {
-		Map<String,RiskData> values = new HashMap<>();
+		Map<String,RiskData> retValues = new HashMap<>();
+		
+		repository = values.get( "repository" );
+		if (!repository.startsWith("https://") && !(repository.startsWith("http://"))) //to make possible that also entering the whole https address is allowed
+			repository="https://api.github.com/repos/"+repository;
+//		try {
+//			new URL(repository);
+//		} catch (MalformedURLException e1) {
+//			e1.printStackTrace();
+//		}
 		
 		try {
 			JSONAware json;
 			json = parse(getDataWithLicense());
 			if (json!=null)
-				parseJsonRepo( json, entity , values); //json.substring(json.indexOf( "{" ) ), entity , values);
-			json = parse(getRepoData("/contributors"));
+				parseJsonRepo( json, entity , retValues); //json.substring(json.indexOf( "{" ) ), entity , values);
+			json = parsePaged("/contributors", 20, 0); //30 per page here
 			if (json!=null)
-				parseJsonContributors(json, entity , values);
+				parseJsonContributors(json, entity , retValues);
 			json = parse(getRepoData("/contents"));
 			if (json!=null)
-				parseJsonContent(json, entity , values);
+				parseJsonContent(json, entity , retValues);
 			json = parse(getRepoData("/stats/participation"));
 			if (json!=null)
-				parseJsonParticipation(json, entity , values);
-			json = parse(getRepoData("/issues?state=all"));
+				parseJsonParticipation(json, entity , retValues);
+			json = parsePaged("/issues?state=all", 10, 1); //32 per page here, 1 = max 1 year old (creation)
 			if (json!=null)
-				parseJsonIssues(json, entity , values);
-			return values;
+				parseJsonIssues(json, entity , retValues, 1);
+			return retValues;
 		} catch( Exception e ) {
 			e.printStackTrace();
-			throw new RuntimeException( e );
+			throw new RuntimeException( e );  //TODO: how are exceptions handled server-side??
 		}
 	}
 	
@@ -162,6 +180,79 @@ public class RDCGithub implements RDC {
 		}
 		return jv;
 	}
+	
+	/**
+	 * For paginated requests
+	 * @param request
+	 * @param maxPages max pages in paginated requests
+	 * @param created_at_years maximum timespan for the "created at" field (used e.g. for issues). 0: no timespan
+	 * @return
+	 */
+	private JSONAware parsePaged(String request, int maxPages, int created_at_years){
+
+		
+		//String json="";
+		JSONArray jaComplete = new JSONArray();
+		
+		try {
+			for (int i=1;i<=maxPages;i++){
+				char divider = '?';
+				if (request.contains("?"))
+					divider='&';
+				String jsonPage = getData(repository+request+divider+"page="+i, "");
+				if (jsonPage.startsWith("WARNING")){
+					System.err.println(jsonPage); //error message - implement different handling if needed
+				} else try {
+					JSONAware jv = (JSONAware) new JSONParser().parse( jsonPage );
+					if( jv instanceof JSONArray ) {
+						JSONArray ja = (JSONArray)jv;
+						if (ja.size() == 0)
+							break;
+						
+						if (created_at_years > 0){
+							Calendar openedDate;
+							String openedAt = (String)((JSONObject)ja.get(ja.size()-1)).get("created_at");
+							if (openedAt != null) {
+								openedDate = DatatypeConverter.parseDateTime(openedAt);
+								//System.out.println("scan: opening date: "+openedDate.get(Calendar.YEAR)+" "+openedDate.get(Calendar.MONTH));
+								Calendar lastyear = Calendar.getInstance();//actual
+								lastyear.set(Calendar.YEAR, lastyear.get(Calendar.YEAR)-created_at_years);
+
+								if (openedDate.compareTo(lastyear) < 0){
+									break;
+								}
+							}
+						}
+						
+						jaComplete.addAll(ja);
+							
+					}
+				} catch (ParseException e) {
+					e.printStackTrace();//TODO
+				}	
+			}
+			
+			
+		} catch (org.apache.http.ParseException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+				
+		return jaComplete;
+	}
+	
+//	private JSONAware parse(String json, int maxpages){
+//		JSONAware jv = null;
+//		if (json.startsWith("WARNING")){
+//			System.err.println(json); //error message - implement different handling if needed
+//		} else try {
+//			jv = (JSONAware) new JSONParser().parse( json );
+//		} catch (ParseException e) {
+//			e.printStackTrace();//TODO
+//		}
+//		return jv;
+//	}
 	
 	private void parseJsonContent( JSONAware jv, String entity, Map<String, RiskData> values ) {
 		int hasTravis = 0;
@@ -185,13 +276,14 @@ public class RDCGithub implements RDC {
 		values.put( rd.getId(), rd );	
 	}
 	
-	private void parseJsonIssues(JSONAware jv, String entity, Map<String, RiskData> values) {
-		
+	private void parseJsonIssues(JSONAware jv, String entity, Map<String, RiskData> values, int created_at_years) {
+
 		if( jv instanceof JSONArray ) {
 			JSONArray ja = (JSONArray)jv;
 			
 			int closedissues = 0;
 			int openissues = 0;
+			int pullrequests = 0;
 			
 			ArrayList<Double> diffList = new ArrayList<Double>();//should be Long, but only Double is supported in the REST data 
 			ArrayList<Double> numCommentsList = new ArrayList<Double>();//should be integer
@@ -200,6 +292,13 @@ public class RDCGithub implements RDC {
 				if (o instanceof JSONObject){
 					JSONObject jo = (JSONObject)o;
 					//System.out.println("   issue state: "+(((JSONObject)jo).get("state")));
+					
+					if (((JSONObject)jo).get("pull_request")!=null){
+						pullrequests++;
+						continue;
+					}
+						
+					
 					String s = ((JSONObject)jo).get("state").toString();
 					if (s.equals("open"))
 						openissues++;
@@ -215,6 +314,15 @@ public class RDCGithub implements RDC {
 						String closedAt = (String)((JSONObject)jo).get("closed_at");
 						if (closedAt != null) {
 							closedDate = DatatypeConverter.parseDateTime(closedAt);
+							//System.out.println("parse: opening date: "+openedDate.get(Calendar.YEAR)+" "+openedDate.get(Calendar.MONTH));
+
+							Calendar calendar = Calendar.getInstance();//actual
+							calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR)-created_at_years);
+							
+							if (openedDate.compareTo(calendar) < 0){
+								break;
+							}
+							
 							long diff = closedDate.getTimeInMillis()-openedDate.getTimeInMillis();
 							diffList.add(new Double(diff));
 							
@@ -238,6 +346,9 @@ public class RDCGithub implements RDC {
 			values.put(rd.getId(), rd);
 			 //average milliseconds for closing an issue
 			rd = new RiskData(GITHUB_PREFIX + "issue-open-close-diff-avg", entity, new Date(), RiskDataType.NUMBER, d.getAverage()); 
+			values.put(rd.getId(), rd);
+			
+			rd = new RiskData(GITHUB_PREFIX + "pull-requests", entity, new Date(), RiskDataType.NUMBER, pullrequests); 
 			values.put(rd.getId(), rd);
 			
 			d = new  Distribution(numCommentsList);
@@ -303,6 +414,10 @@ public class RDCGithub implements RDC {
 		//sum of all the commits done
 		rd = new RiskData( GITHUB_PREFIX + "contributions_sum", entity, new Date(), RiskDataType.NUMBER, contributions );
 		values.put( rd.getId(), rd );
+		
+		//commits per contributor
+		rd = new RiskData( GITHUB_PREFIX + "commits_per_contributor", entity, new Date(), RiskDataType.NUMBER, contributions/contributors );
+		values.put( rd.getId(), rd );
 	}
 	
 	//TODO: rewrite in a more efficient way, caching the data
@@ -310,6 +425,8 @@ public class RDCGithub implements RDC {
 		int currlimit = contributions * limit / 100; //truncating is ok
 		int sum = 0;
 		int num = 0;
+		
+		//contributors seem already to be sorted by number of contributions
 		for (Object o : ja){
 			JSONObject jo = (JSONObject)o;
 			sum += Integer.parseInt(jo.get("contributions").toString());
@@ -318,12 +435,13 @@ public class RDCGithub implements RDC {
 				break;
 		}
 		String idName = GITHUB_PREFIX + "percent_contributors_did_"+limit+"_percent_of_commits";
-		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, num );
+		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, num/ja.size() );
 		values.put( rd.getId(), rd );
 		//System.out.println("with limit "+limit+"% : "+num);
 	}
 
 	private void parseJsonRepo( JSONAware jv, String entity, Map<String, RiskData> values ) {
+		final long MILLISEC_YEAR = 365L*24*3600*1000;
 		if( jv instanceof JSONObject ) {
 			JSONObject jo = (JSONObject)jv;
 			for( Object key : jo.keySet() ) {
@@ -364,6 +482,14 @@ public class RDCGithub implements RDC {
 							Date date = formatter.parse( value );
 							RiskData rd = new RiskData( GITHUB_PREFIX + key.toString(), entity, new Date(), RiskDataType.NUMBER, date.getTime() );
 							values.put( rd.getId(), rd );
+							
+							//calculate also the repository age!
+							if(key.toString().equals("created_at")){ 
+								long datediff = new Date().getTime() - date.getTime();
+								double years = (double) datediff / MILLISEC_YEAR;
+								rd = new RiskData( GITHUB_PREFIX + "repository_age_years", entity, new Date(), RiskDataType.NUMBER, years);
+								values.put( rd.getId(), rd );	
+							}
 						}
 						catch( Exception ex ) {
 							ex.printStackTrace();
@@ -384,6 +510,7 @@ public class RDCGithub implements RDC {
 						rd = new RiskData( GITHUB_PREFIX + "has_license", entity, new Date(), RiskDataType.NUMBER, 1 );
 					values.put( rd.getId(), rd );
 				}
+				
 			}
 		}		
 	}
@@ -394,12 +521,12 @@ public class RDCGithub implements RDC {
 	}
 	
 	String getRepoData(String request) throws org.apache.http.ParseException, IOException {
-		String repository = values.get( "repository" );
+		//String repository = values.get( "repository" );
 		return getData(repository+request, "");
 	}
 	
 	String getDataWithLicense() throws org.apache.http.ParseException, IOException {
-		String repository = values.get( "repository" );
+		//String repository = values.get( "repository" );
 		return getData(repository, "application/vnd.github.drax-preview+json");//to enable license info
 	}
 	
@@ -411,8 +538,8 @@ public class RDCGithub implements RDC {
 	 * @throws IOException
 	 */
 	String getData(String request, String header) throws org.apache.http.ParseException, IOException {
-		System.out.println("Request string: https://api.github.com/repos/"+  request);
-		HttpGet get = new HttpGet( "https://api.github.com/repos/" +  request);
+		System.out.println("Github request string: "+  request); //https://api.github.com/repos/"+  request);
+		HttpGet get = new HttpGet( request ); //"https://api.github.com/repos/" +  request);
 		if (header!=""){
 			get.setHeader("Accept", header);
 		}
