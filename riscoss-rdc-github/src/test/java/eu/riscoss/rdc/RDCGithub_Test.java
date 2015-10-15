@@ -13,8 +13,9 @@ public class RDCGithub_Test {
 				"-entity=x",
 				"-print",
 				"-rdc=Github",
+				"-repository=RISCOSS/riscoss-analyser"
 				//"-repository=RISCOSS/riscoss-data-collector"  // Mirkk/GOBRepo"xwiki/xwiki-platform
-				"-repository=xwiki/xwiki-platform"
+				//"-repository=xwiki/xwiki-platform"
 
 		} );
 		

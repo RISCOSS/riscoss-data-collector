@@ -1,8 +1,6 @@
 package eu.riscoss.rdc;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,6 +18,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
@@ -82,9 +81,9 @@ public class RDCGithub implements RDC {
 		//issues closed till now (in last year's issues)
 		names.put( GITHUB_PREFIX + "issue-closedratio", "number");
 		
-		//milliseconds for closing an issue, in history order, last year
+		//days for closing an issue, in history order, last year
 		names.put( GITHUB_PREFIX + "issue-open-close-diff", "numberlist");
-		 //average milliseconds for closing an issue, last year
+		 //average days for closing an issue, last year
 		names.put( GITHUB_PREFIX + "issue-open-close-diff-avg", "number"); 
 		
 		//pull requests last year (from the issues list)
@@ -115,6 +114,7 @@ public class RDCGithub implements RDC {
 		names.put(GITHUB_PREFIX + "repository_age_years", "number");
 		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
+		parameters.put( "unamepwd", new RDCParameter( "unamepwd", "Github username:pwd (unauthenticated: only ca. 6 runs per hour possible)", "uname:pwd", "" ) );
 	}
 	
 	@Override
@@ -324,7 +324,8 @@ public class RDCGithub implements RDC {
 							}
 							
 							long diff = closedDate.getTimeInMillis()-openedDate.getTimeInMillis();
-							diffList.add(new Double(diff));
+							double diffd = diff / 1000 / 60 / 60 / 24; //difference in days.
+							diffList.add(diffd);
 							
 							//System.out.println(closedDate.getTimeInMillis()-openedDate.getTimeInMillis());
 						}
@@ -342,9 +343,10 @@ public class RDCGithub implements RDC {
 			values.put(rd.getId(), rd);
 			
 			Distribution d = new  Distribution(diffList);
+			 //days for closing issues
 			rd = new RiskData(GITHUB_PREFIX + "issue-open-close-diff", entity, new Date(), RiskDataType.DISTRIBUTION, new Distribution(diffList));
 			values.put(rd.getId(), rd);
-			 //average milliseconds for closing an issue
+			 //average days for closing an issue
 			rd = new RiskData(GITHUB_PREFIX + "issue-open-close-diff-avg", entity, new Date(), RiskDataType.NUMBER, d.getAverage()); 
 			values.put(rd.getId(), rd);
 			
@@ -435,9 +437,9 @@ public class RDCGithub implements RDC {
 				break;
 		}
 		String idName = GITHUB_PREFIX + "percent_contributors_did_"+limit+"_percent_of_commits";
-		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, num/ja.size() );
+		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, (double)num/ja.size() );
 		values.put( rd.getId(), rd );
-		//System.out.println("with limit "+limit+"% : "+num);
+		//System.out.println("with limit "+limit+"% : "+(double)num/ja.size());
 	}
 
 	private void parseJsonRepo( JSONAware jv, String entity, Map<String, RiskData> values ) {
@@ -538,13 +540,21 @@ public class RDCGithub implements RDC {
 	 * @throws IOException
 	 */
 	String getData(String request, String header) throws org.apache.http.ParseException, IOException {
-		System.out.println("Github request string: "+  request); //https://api.github.com/repos/"+  request);
 		HttpGet get = new HttpGet( request ); //"https://api.github.com/repos/" +  request);
-		if (header!=""){
+		if (header!="")
 			get.setHeader("Accept", header);
-		}
-
-		HttpResponse response = client.execute(get);
+		
+		String unamepwd = values.get( "unamepwd" );
+		
+		String encoded;
+		if (unamepwd!=null && !unamepwd.equals(""))
+			encoded =  new String( Base64.encodeBase64(unamepwd.getBytes()));
+		else
+			encoded = "UmlzY29zc1VzZXI6UmlzY29zczIwMTU="; //standard RiscossUser (delete in final version)
+		
+		get.setHeader("Authorization", "Basic " + encoded); 
+		HttpResponse response = client.execute(get);//WARNING 401 if not authorized
+		System.out.println("response: "+response.toString());
 		
 		if (response.getStatusLine().getStatusCode() == 200) {
 			HttpEntity entity = response.getEntity();
@@ -554,7 +564,7 @@ public class RDCGithub implements RDC {
 			return "WARNING 202 Accept: Computing....try again in some seconds.";
 			
 		} else {
-			// something has gone wrong...
+			// something has gone wrong... e.g. WARNING 401 if Unauthorized
 			return "WARNING "+ response.getStatusLine().getStatusCode() +"\n"+response.getStatusLine().toString();
 		}	
 	}
