@@ -1,3 +1,24 @@
+/*
+   (C) Copyright 2013-2016 The RISCOSS Project Consortium
+   
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
+
+/**
+ * @author 	Mirko Morandini
+**/
+
 package eu.riscoss.rdc;
 
 import java.io.IOException;
@@ -190,16 +211,20 @@ public class RDCGithub implements RDC {
 	 */
 	private JSONAware parsePaged(String request, int maxPages, int created_at_years){
 
-		
-		//String json="";
 		JSONArray jaComplete = new JSONArray();
+		
+		char divider = '?';
+		if (request.contains("?"))
+			divider='&';
+		
+		Calendar lastyear = Calendar.getInstance();//actual
+		lastyear.set(Calendar.YEAR, lastyear.get(Calendar.YEAR)-created_at_years);
 		
 		try {
 			for (int i=1;i<=maxPages;i++){
-				char divider = '?';
-				if (request.contains("?"))
-					divider='&';
+				
 				String jsonPage = getData(repository+request+divider+"page="+i, "");
+
 				if (jsonPage.startsWith("WARNING")){
 					System.err.println(jsonPage); //error message - implement different handling if needed
 				} else try {
@@ -208,37 +233,34 @@ public class RDCGithub implements RDC {
 						JSONArray ja = (JSONArray)jv;
 						if (ja.size() == 0)
 							break;
-						
+						jaComplete.addAll(ja);
+						//do not scan more years
 						if (created_at_years > 0){
 							Calendar openedDate;
 							String openedAt = (String)((JSONObject)ja.get(ja.size()-1)).get("created_at");
 							if (openedAt != null) {
 								openedDate = DatatypeConverter.parseDateTime(openedAt);
 								//System.out.println("scan: opening date: "+openedDate.get(Calendar.YEAR)+" "+openedDate.get(Calendar.MONTH));
-								Calendar lastyear = Calendar.getInstance();//actual
-								lastyear.set(Calendar.YEAR, lastyear.get(Calendar.YEAR)-created_at_years);
+								//System.out.println("scan: last    date: "+lastyear.get(Calendar.YEAR)+" "+lastyear.get(Calendar.MONTH));
 
 								if (openedDate.compareTo(lastyear) < 0){
+									System.out.println("BREAK");
 									break;
 								}
 							}
-						}
-						
-						jaComplete.addAll(ja);
+						}		
 							
 					}
 				} catch (ParseException e) {
 					e.printStackTrace();//TODO
 				}	
-			}
-			
+			}		
 			
 		} catch (org.apache.http.ParseException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-				
 		return jaComplete;
 	}
 	
@@ -293,12 +315,11 @@ public class RDCGithub implements RDC {
 					JSONObject jo = (JSONObject)o;
 					//System.out.println("   issue state: "+(((JSONObject)jo).get("state")));
 					
-					if (((JSONObject)jo).get("pull_request")!=null){
+					if (jo.get("pull_request")!=null){
 						pullrequests++;
 						continue;
 					}
-						
-					
+							
 					String s = ((JSONObject)jo).get("state").toString();
 					if (s.equals("open"))
 						openissues++;
@@ -308,11 +329,12 @@ public class RDCGithub implements RDC {
 					Calendar openedDate = null;
 					
 					String openedAt = (String)((JSONObject)jo).get("created_at");
+					
 					if (openedAt != null) {
 						openedDate = DatatypeConverter.parseDateTime(openedAt);
 						//System.out.println("open: "+openedDate.getTime());
 						String closedAt = (String)((JSONObject)jo).get("closed_at");
-						if (closedAt != null) {
+						if (closedAt != null && !closedAt.equals("")) {
 							closedDate = DatatypeConverter.parseDateTime(closedAt);
 							//System.out.println("parse: opening date: "+openedDate.get(Calendar.YEAR)+" "+openedDate.get(Calendar.MONTH));
 
@@ -325,9 +347,9 @@ public class RDCGithub implements RDC {
 							
 							long diff = closedDate.getTimeInMillis()-openedDate.getTimeInMillis();
 							double diffd = diff / 1000 / 60 / 60 / 24; //difference in days.
+							
 							diffList.add(diffd);
 							
-							//System.out.println(closedDate.getTimeInMillis()-openedDate.getTimeInMillis());
 						}
 					}
 					numCommentsList.add(new Double((Long)((JSONObject)jo).get("comments")));
@@ -336,7 +358,7 @@ public class RDCGithub implements RDC {
 			
 			double sum = ja.size();
 			//assert(sum == openissues + closedissues);  //??sure??
-			System.out.println(openissues+"   openissues  "+closedissues+" "+sum);
+			System.out.println(openissues+"   openissues  + "+closedissues+" closedissues = "+sum);
 			RiskData rd = new RiskData(GITHUB_PREFIX + "issue-closedratio", entity, new Date(), RiskDataType.NUMBER, closedissues/sum);
 			values.put(rd.getId(), rd);
 			rd = new RiskData(GITHUB_PREFIX + "issue-openratio", entity, new Date(), RiskDataType.NUMBER, openissues/sum);
