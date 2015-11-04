@@ -167,8 +167,11 @@ public class RDCGithub implements RDC {
 //		}
 		
 		try {
-			JSONAware json;
-			json = parse(getDataWithLicense());
+			String data = getDataWithLicense();
+			if (data != null && data.indexOf("WARNING ") == 0) {
+				return retValues;
+			}
+			JSONAware json = parse(data);
 			if (json!=null)
 				parseJsonRepo( json, entity , retValues); //json.substring(json.indexOf( "{" ) ), entity , values);
 			json = parsePaged("/contributors", 20, 0); //30 per page here
