@@ -135,7 +135,7 @@ public class RDCGithub implements RDC {
 		names.put(GITHUB_PREFIX + "repository_age_years", "number");
 		
 		parameters.put( "repository", new RDCParameter( "repository", "Repository name", "RISCOSS/riscoss-analyser", null ) );
-		parameters.put( "unamepwd", new RDCParameter( "unamepwd", "Github username:pwd (unauthenticated: only ca. 6 runs per hour possible)", "uname:pwd", "" ) );
+		parameters.put( "unamepwd", new RDCParameter( "unamepwd", "LEAVE THIS FIELD EMPTY to use default authentication. Github username:pwd (unauthenticated: only ca. 6 runs per hour possible)", "uname:pwd", "" ) );
 	}
 	
 	@Override
@@ -362,10 +362,13 @@ public class RDCGithub implements RDC {
 			double sum = ja.size();
 			//assert(sum == openissues + closedissues);  //??sure??
 			System.out.println(openissues+"   openissues  + "+closedissues+" closedissues = "+sum);
-			RiskData rd = new RiskData(GITHUB_PREFIX + "issue-closedratio", entity, new Date(), RiskDataType.NUMBER, closedissues/sum);
-			values.put(rd.getId(), rd);
-			rd = new RiskData(GITHUB_PREFIX + "issue-openratio", entity, new Date(), RiskDataType.NUMBER, openissues/sum);
-			values.put(rd.getId(), rd);
+			RiskData rd = null;
+			if( sum > 0 ) {
+				rd = new RiskData(GITHUB_PREFIX + "issue-closedratio", entity, new Date(), RiskDataType.NUMBER, closedissues/sum);
+				values.put(rd.getId(), rd);
+				rd = new RiskData(GITHUB_PREFIX + "issue-openratio", entity, new Date(), RiskDataType.NUMBER, openissues/sum);
+				values.put(rd.getId(), rd);
+			}
 			
 			Distribution d = new  Distribution(diffList);
 			 //days for closing issues
@@ -443,8 +446,10 @@ public class RDCGithub implements RDC {
 		values.put( rd.getId(), rd );
 		
 		//commits per contributor
-		rd = new RiskData( GITHUB_PREFIX + "commits_per_contributor", entity, new Date(), RiskDataType.NUMBER, contributions/contributors );
-		values.put( rd.getId(), rd );
+		if( contributors > 0 ) {
+			rd = new RiskData( GITHUB_PREFIX + "commits_per_contributor", entity, new Date(), RiskDataType.NUMBER, contributions/contributors );
+			values.put( rd.getId(), rd );
+		}
 	}
 	
 	//TODO: rewrite in a more efficient way, caching the data
@@ -462,8 +467,10 @@ public class RDCGithub implements RDC {
 				break;
 		}
 		String idName = GITHUB_PREFIX + "percent_contributors_did_"+limit+"_percent_of_commits";
-		RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, (double)num/ja.size() );
-		values.put( rd.getId(), rd );
+		if( ja.size() > 0 ) {
+			RiskData rd = new RiskData(idName, entity, new Date(), RiskDataType.NUMBER, (double)num/ja.size() );
+			values.put( rd.getId(), rd );
+		}
 		//System.out.println("with limit "+limit+"% : "+(double)num/ja.size());
 	}
 
