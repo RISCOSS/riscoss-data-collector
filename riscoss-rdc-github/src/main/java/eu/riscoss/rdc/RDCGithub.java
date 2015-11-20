@@ -158,8 +158,14 @@ public class RDCGithub implements RDC {
 		Map<String,RiskData> retValues = new HashMap<>();
 		
 		repository = values.get( "repository" );
-		if (!repository.startsWith("https://") && !(repository.startsWith("http://"))) //to make possible that also entering the whole https address is allowed
-			repository="https://api.github.com/repos/"+repository;
+		
+		if( repository.startsWith( "https://github.com/") ) {
+			repository = repository.substring( "https://github.com/".length() );
+		}
+		repository = "https://api.github.com/repos/" + repository;
+		
+//		if (!repository.startsWith("https://") ) //&& !(repository.startsWith("http://"))) //to make possible that also entering the whole https address is allowed
+//			repository="https://api.github.com/repos/"+repository;
 //		try {
 //			new URL(repository);
 //		} catch (MalformedURLException e1) {
